@@ -20,6 +20,7 @@ package org.bigbluebutton.conference.service.video;
 
 import org.slf4j.Logger;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
 
 public class VideoService {
 
@@ -28,8 +29,9 @@ public class VideoService {
 	private VideoApplication videoApplication;
 
 	public void getStreamPath(String streamName) {
-		log.debug("Stream Path requested for [{}]", streamName);
-		videoApplication.getStreamPath(streamName);
+		String clientAddr = Red5.getConnectionLocal().getRemoteAddress();
+		log.debug("Stream Path requested from client at [{}] for stream [{}]", clientAddr, streamName);
+		videoApplication.getStreamPath(clientAddr, streamName);
 	}
 
 	public void setVideoApplication(VideoApplication a) {

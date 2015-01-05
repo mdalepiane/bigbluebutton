@@ -2086,6 +2086,7 @@ class CollectorActor(dispatcher: IDispatcher) extends Actor {
 
     payload.put(Constants.MEETING_ID, msg.meetingID)
     payload.put(Constants.REQUESTER_ID, msg.requesterID)
+    payload.put(Constants.CLIENT_ADDR, msg.clientAddr)
     payload.put(Constants.STREAM, msg.streamName)
     payload.put(Constants.STREAM_PATH_DEFAULT, msg.streamName)
 

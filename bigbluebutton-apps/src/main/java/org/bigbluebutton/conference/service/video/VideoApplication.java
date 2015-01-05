@@ -32,10 +32,10 @@ public class VideoApplication {
 	private IBigBlueButtonInGW bbbInGW;
 	private String defaultStreampath;
 
-	public void getStreamPath(String streamName) {
+	public void getStreamPath(String clientAddr, String streamName) {
 		String meetingId = getBbbSession().getRoom();
 		String userId = getBbbSession().getInternalUserID();
-		bbbInGW.getStreamPath(meetingId, userId, streamName, defaultStreampath);
+		bbbInGW.getStreamPath(meetingId, userId, clientAddr, streamName, defaultStreampath);
 	}
 
 	private BigBlueButtonSession getBbbSession() {

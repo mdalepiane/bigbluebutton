@@ -463,7 +463,7 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	/*********************************************************************
 	 * Message Interface for Video
 	 *******************************************************************/
-	 def getStreamPath(meetingId:String, requesterId:String, streamName: String, defaultPath:String) {
-		 bbbGW.accept(new GetStreamPath(meetingId, requesterId, streamName, defaultPath));
+	 def getStreamPath(meetingId:String, requesterId:String, clientAddr:String, streamName: String, defaultPath:String) {
+		 bbbGW.accept(new GetStreamPath(meetingId, requesterId, clientAddr, streamName, defaultPath));
 	 }
 }
