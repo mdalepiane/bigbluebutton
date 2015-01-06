@@ -653,6 +653,14 @@ case class MeetingVO(
 )
 
 // Video
+case class GetStreamPathRequest(
+    meetingID: String,
+    requesterID: String,
+    clientAddr: String,
+    streamName: String,
+    version:String = Versions.V_0_0_1
+) extends IOutMessage
+
 case class GetStreamPathReply(
     meetingID: String,
     requesterID: String,

@@ -121,6 +121,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
                 <ref bean="fsConfService"/>                    
                 <ref bean="whiteboardEventRedisPublisher"/>
                 <ref bean="videoRed5ClientSender"/>
+                <ref bean="videoRedisPublisher"/>
                 <ref bean="collectorGW"/>                   
             </set>        
          </property> 
@@ -204,6 +205,10 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 
     <bean id="videoRed5ClientSender" class="org.bigbluebutton.core.apps.video.red5.VideoClientMessageSender">
       <constructor-arg index="0" ref="connInvokerService"/>
+    </bean>
+
+    <bean id="videoRedisPublisher" class="org.bigbluebutton.core.apps.video.redis.VideoEventRedisPublisher">
+      <constructor-arg ref="redisMessageSender" />
     </bean>
     
 
