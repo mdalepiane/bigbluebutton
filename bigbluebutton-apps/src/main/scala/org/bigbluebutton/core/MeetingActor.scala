@@ -115,6 +115,7 @@ class MeetingActor(val meetingID: String, meetingName: String, val recorded: Boo
 	    case msg: GetRecordingStatus                     => handleGetRecordingStatus(msg)
 	    case msg: VoiceRecording                         => handleVoiceRecording(msg)
 	    case msg: GetStreamPath                          => handleGetStreamPath(msg)
+	    case msg: GetStreamPathReplyInMsg                => handleGetStreamPathReply(msg)
 
 	    case msg: EndMeeting                             => handleEndMeeting(msg)
 	    case StopMeetingActor                            => exit

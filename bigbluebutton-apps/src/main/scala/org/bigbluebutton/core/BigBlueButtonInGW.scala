@@ -466,4 +466,8 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	 def getStreamPath(meetingId:String, requesterId:String, clientAddr:String, streamName: String, defaultPath:String) {
 		 bbbGW.accept(new GetStreamPath(meetingId, requesterId, clientAddr, streamName, defaultPath));
 	 }
+
+	def getStreamPathReply(meetingId:String, requesterId:String, streamName: String, streamPath:String) {
+		bbbGW.accept(new GetStreamPathReplyInMsg(meetingId, requesterId, streamName, streamPath));
+	}
 }

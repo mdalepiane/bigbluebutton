@@ -661,7 +661,7 @@ case class GetStreamPathRequest(
     version:String = Versions.V_0_0_1
 ) extends IOutMessage
 
-case class GetStreamPathReply(
+case class GetStreamPathReplyOutMsg(
     meetingID: String,
     requesterID: String,
     streamName: String,

@@ -7,11 +7,14 @@ trait VideoApp {
 	this : MeetingActor =>
 
 	val outGW: MessageOutGateway
+	var defaultStreamPath: String = ""
 
 	def handleGetStreamPath(msg: GetStreamPath) {
 		outGW.send(new GetStreamPathRequest(msg.meetingID, msg.requesterID, msg.clientAddr, msg.streamName))
-		val streamPath = msg.defaultPath
-		// TODO: Move the reply to a handler
-		outGW.send(new GetStreamPathReply(msg.meetingID, msg.requesterID, msg.streamName, streamPath))
+		defaultStreamPath = msg.defaultPath
+	}
+
+	def handleGetStreamPathReply(msg: GetStreamPathReplyInMsg) {
+		outGW.send(new GetStreamPathReplyOutMsg(msg.meetingID, msg.requesterID, msg.streamName, msg.streamPath))
 	}
 }

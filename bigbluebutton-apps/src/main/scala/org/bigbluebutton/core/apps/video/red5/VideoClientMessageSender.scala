@@ -10,12 +10,12 @@ class VideoClientMessageSender(service: ConnectionInvokerService) extends OutMes
 
 	def handleMessage(msg: IOutMessage) {
 		msg match {
-			case msg:GetStreamPathReply               => handleGetStreamPathReply(msg)
+			case msg:GetStreamPathReplyOutMsg               => handleGetStreamPathReply(msg)
 			case _ => // do nothing
 		}
 	}
 
-	private def handleGetStreamPathReply(msg: GetStreamPathReply) {
+	private def handleGetStreamPathReply(msg: GetStreamPathReplyOutMsg) {
 		// Build JSON
 		val args = new java.util.HashMap[String, Object]()
 		args.put("streamName", msg.streamName);

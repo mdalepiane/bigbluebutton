@@ -39,6 +39,7 @@ public class MessagingConstants {
 	public static final String TO_POLLING_CHANNEL = TO_BBB_APPS_CHANNEL + ":polling";
 	public static final String TO_USERS_CHANNEL = TO_BBB_APPS_CHANNEL + ":users";
 	public static final String TO_CHAT_CHANNEL = TO_BBB_APPS_CHANNEL + ":chat";   
+	public static final String TO_VIDEO_CHANNEL = TO_BBB_APPS_CHANNEL + ":video";
 
 
 	public static final String DESTROY_MEETING_REQUEST_EVENT = "DestroyMeetingRequestEvent";
@@ -52,4 +53,6 @@ public class MessagingConstants {
 	public static final String USER_STATUS_CHANGE_EVENT = "UserStatusChangeEvent";	
 	public static final String SEND_POLLS_EVENT = "SendPollsEvent";
 	public static final String RECORD_STATUS_EVENT = "RecordStatusEvent";
+	public static final String GET_STREAM_PATH_REQUEST = "get_stream_path_request";
+	public static final String GET_STREAM_PATH_REPLY = "get_stream_path_reply";
 }

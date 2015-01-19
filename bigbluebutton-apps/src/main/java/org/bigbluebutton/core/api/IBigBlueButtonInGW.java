@@ -116,5 +116,6 @@ public interface IBigBlueButtonInGW {
 
 	// Video
 	void getStreamPath(String meetingID, String requesterID, String clientAddr, String streamName, String defaultPath);
+	void getStreamPathReply(String meetingID, String requesterID, String streamName, String streamPath);
 
 }

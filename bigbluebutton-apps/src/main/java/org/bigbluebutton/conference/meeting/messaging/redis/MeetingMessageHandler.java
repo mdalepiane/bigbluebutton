@@ -7,6 +7,7 @@ import org.bigbluebutton.conference.service.messaging.CreateMeetingMessage;
 import org.bigbluebutton.conference.service.messaging.DestroyMeetingMessage;
 import org.bigbluebutton.conference.service.messaging.EndMeetingMessage;
 import org.bigbluebutton.conference.service.messaging.IMessage;
+import org.bigbluebutton.conference.service.messaging.GetStreamPathReplyMessage;
 import org.bigbluebutton.conference.service.messaging.KeepAliveMessage;
 import org.bigbluebutton.conference.service.messaging.MessageFromJsonConverter;
 import org.bigbluebutton.conference.service.messaging.MessagingConstants;
@@ -70,6 +71,15 @@ public class MeetingMessageHandler implements MessageHandler {
 					KeepAliveMessage emm = (KeepAliveMessage) msg;
 					log.debug("Received KeepAliveMessage request. Meeting id [{}]", emm.keepAliveId);
 					bbbGW.isAliveAudit(emm.keepAliveId);					
+				}
+			}
+		} else if (channel.equalsIgnoreCase(MessagingConstants.TO_VIDEO_CHANNEL)) {
+			IMessage msg = MessageFromJsonConverter.convert(message);
+			if (msg != null) {
+				if (msg instanceof GetStreamPathReplyMessage) {
+					GetStreamPathReplyMessage emm = (GetStreamPathReplyMessage) msg;
+					log.debug("Received GetStreamPathReplyMessage. StreamName [{}], StreamPath [{}], RequesterID [{}]", emm.streamName, emm.streamPath, emm.requesterID);
+					bbbGW.getStreamPathReply(emm.meetingID, emm.requesterID, emm.streamName, emm.streamPath);
 				}
 			}
 		}

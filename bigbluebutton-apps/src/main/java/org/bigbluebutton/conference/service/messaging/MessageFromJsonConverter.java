@@ -33,6 +33,8 @@ public class MessageFromJsonConverter {
 					return UserConnectedToGlobalAudio.fromJson(message);
 				  case UserDisconnectedFromGlobalAudio.USER_DISCONNECTED_FROM_GLOBAL_AUDIO:
 					return UserDisconnectedFromGlobalAudio.fromJson(message);
+				  case MessagingConstants.GET_STREAM_PATH_REPLY:
+					return GetStreamPathReplyMessage.fromJson(message);
 				}
 			}
 		}

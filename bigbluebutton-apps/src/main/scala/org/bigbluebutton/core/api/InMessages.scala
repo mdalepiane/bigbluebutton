@@ -509,3 +509,10 @@ case class GetStreamPath(
     streamName: String,
     defaultPath: String
 ) extends InMessage
+
+case class GetStreamPathReplyInMsg(
+    meetingID: String,
+    requesterID: String,
+    streamName: String,
+    streamPath: String
+) extends InMessage
