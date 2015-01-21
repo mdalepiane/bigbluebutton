@@ -1,0 +1,7 @@
+#!monit
+set logfile /var/log/monit.log
+
+check process bbb-external-api-caller with pidfile "/var/run/bbb-external-api-caller.pid"
+    start program = "/sbin/start bbb-external-api-caller"
+    stop program  = "/sbin/stop bbb-external-api-caller"
+    # if 5 restarts within 5 cycles then timeout
