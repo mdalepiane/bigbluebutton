@@ -6,6 +6,38 @@ on an external API and publish result back to redis, so BigBlueButton may use
 it.
 
 
+Event mapping
+-------------
+
+The application subscribes to redis events and check them against the events
+mapped in config. When an event is mapped to an external API call, the call
+is performed and the result is published back to redis.
+
+Event maps must contain the following information:
+* channel: redis channel
+* event_name: redis event name
+* api_call: external API call used for the event
+* response: redis event name for the response
+* response_channel: redis channel for the response
+
+External API Call Format
+------------------------
+
+The external API calls follow BigBlueButton API call format.
+
+Everything within the event payload is included as parameters for the http call.
+
+Result from API call
+--------------------
+
+The result from the API call is published back to redis in the channel specified
+in the mapping, with the event name specified.
+
+Everything from the payload of the original event is included in the response
+payload, as well as the response data. If there is a field with the same name
+in the original payload and in the response data, the original content is
+overwritten by the content within the call response.
+
 Development
 -----------
 
