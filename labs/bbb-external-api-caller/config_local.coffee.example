@@ -5,8 +5,8 @@ config = {}
 config.api = {}
 
 # API configs
-config.api.sharedSecret = "ZPvUIGwfKGs61DTwCuBvBTll8QBwKTij"
-config.api.apiServer = "10.0.3.1"
+config.api.sharedSecret = "33e06642a13942004fd83b3ba6e4104a"
+config.api.apiServer = "127.0.0.1"
 config.api.apiPath = "/bigbluebutton/api"
 config.api.apiPort = "3000"
 
