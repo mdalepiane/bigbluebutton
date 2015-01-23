@@ -10,7 +10,7 @@ trait VideoApp {
 	var defaultStreamPath: String = ""
 
 	def handleGetStreamPath(msg: GetStreamPath) {
-		outGW.send(new GetStreamPathRequest(msg.meetingID, msg.requesterID, msg.clientAddr, msg.streamName))
+		outGW.send(new GetStreamPathRequest(msg.meetingID, externalMeetingID, msg.requesterID, msg.clientAddr, msg.streamName))
 		defaultStreamPath = msg.defaultPath
 	}
 

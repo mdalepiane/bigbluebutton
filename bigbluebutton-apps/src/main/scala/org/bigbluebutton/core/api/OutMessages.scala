@@ -662,6 +662,7 @@ case class MeetingVO(
 // Video
 case class GetStreamPathRequest(
     meetingID: String,
+    externalMeetingID: String,
     requesterID: String,
     clientAddr: String,
     streamName: String,
