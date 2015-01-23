@@ -17,33 +17,25 @@ import org.bigbluebutton.core.apps.presentation.Presentation
 class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresentationsUtil) extends IBigBlueButtonInGW {
    
   // Meeting
-  def createMeeting2(meetingID: String, meetingName: String, record: Boolean, voiceBridge: String, duration: Long) {
+  def createMeeting2(meetingID: String, externalMeetingID:String, meetingName: String, record: Boolean, 
+          voiceBridge: String, duration: Long, autoStartRecording: Boolean, 
+          allowStartStopRecording: Boolean) {
 //    println("******************** CREATING MEETING [" + meetingID + "] ***************************** ")
-	bbbGW.accept(new CreateMeeting(meetingID, meetingName, record, voiceBridge, duration))
-
-	/*
-	val pres = presUtil.getPreuploadedPresentations(meetingID);
-	if (!pres.isEmpty()) {
-	  var presentations = new scala.collection.immutable.HashMap[String, Presentation]
-	  
-	  pres foreach {p =>
-	    val pages = generatePresentationPages(p.numPages)
-	    val presentation = new Presentation(id=p.id, name=p.id, pages=pages)
-	    presentations += presentation.id -> presentation
-	  }
-	  
-	  
-	  bbbGW.accept(new PreuploadedPresentations(meetingID, presentations.values.toSeq))
-	}
-	
-	*/
+  	bbbGW.accept(new CreateMeeting(meetingID, externalMeetingID, meetingName, record, 
+	                   voiceBridge, duration, autoStartRecording,
+	                   allowStartStopRecording))
   }
   
   def destroyMeeting(meetingID: String) {
 //    println("******************** DESTROY MEETING [" + meetingID + "] ***************************** ")
     bbbGW.accept(new DestroyMeeting(meetingID))
   }
-  
+
+  def getAllMeetings(meetingID: String) {
+  	println("******************** GET ALL MEETINGS ***************************** ")
+  	bbbGW.accept(new GetAllMeetingsRequest("meetingId"))
+  }
+
   def isAliveAudit(aliveId:String) {
     bbbGW.acceptKeepAlive(new KeepAliveMessage(aliveId)); 
   }
@@ -225,7 +217,7 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
                        code, presentationId, numberOfPages, pagesCompleted, presName))	  
 	}
 	
-    def generatePresentationPages(presId: String, numPages: Int, presBaseUrl: String):scala.collection.immutable.HashMap[String, Page] = {
+  def generatePresentationPages(presId: String, numPages: Int, presBaseUrl: String):scala.collection.immutable.HashMap[String, Page] = {
 	  var pages = new scala.collection.immutable.HashMap[String, Page]
 	  val baseUrl = 
 	  for (i <- 1 to numPages) {
@@ -234,10 +226,12 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	    val current = if (i == 1) true else false
 	    val thumbnail = presBaseUrl + "/thumbnail/" + i
 	    val swfUri = presBaseUrl + "/slide/" + i
-	    val txtUri = presBaseUrl + "/textfiles/slide-" + i + ".txt"
-				
+
+        val txtUri = presBaseUrl + "/textfiles/slide-" + i + ".txt"
+        val pngUri = presBaseUrl + "/png/" + i
+
 	    val p = new Page(id=id, num=num, thumbUri=thumbnail, swfUri=swfUri,
-	                     txtUri=txtUri, pngUri=thumbnail,
+	                     txtUri=txtUri, pngUri=pngUri,
 	                     current=current)
 	    pages += (p.id -> p)
 	  }
@@ -262,7 +256,7 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	}
 	
 	def getPresentationInfo(meetingID: String, requesterID: String, replyTo: String) {
-	  println("**** Forwarding GetPresentationInfo for meeting[" + meetingID + "] ****")
+//	  println("**** Forwarding GetPresentationInfo for meeting[" + meetingID + "] ****")
 	  bbbGW.accept(new GetPresentationInfo(meetingID, requesterID, replyTo))
 	}
 	
@@ -275,7 +269,7 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	}
 	
 	def gotoSlide(meetingID: String, pageId: String) {
-	  println("**** Forwarding GotoSlide for meeting[" + meetingID + "] ****")
+//	  println("**** Forwarding GotoSlide for meeting[" + meetingID + "] ****")
 	  bbbGW.accept(new GotoSlide(meetingID, pageId))
 	}
 	
@@ -434,8 +428,7 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	  
 	  voiceGW.voiceUserJoined(meetingId, userId, webUserId, 
 	                            conference, callerIdNum, 
-	                            callerIdName,
-								muted, speaking)
+	                            callerIdName, muted, speaking)
 	}
 	
 	def voiceUserLeft(meetingId: String, userId: String) {

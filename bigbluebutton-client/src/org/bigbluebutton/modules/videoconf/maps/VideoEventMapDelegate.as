@@ -18,9 +18,15 @@
  */
 package org.bigbluebutton.modules.videoconf.maps
 {
+  import com.asfusion.mate.utils.debug.Debugger;
+  import com.asfusion.mate.utils.debug.DebuggerUtil;
+  
   import flash.events.IEventDispatcher;
-  import flash.media.Camera;  
-  import mx.collections.ArrayCollection;  
+  import flash.external.ExternalInterface;
+  import flash.media.Camera;
+  
+  import mx.collections.ArrayCollection;
+  
   import org.bigbluebutton.common.LogUtil;
   import org.bigbluebutton.common.events.CloseWindowEvent;
   import org.bigbluebutton.common.events.OpenWindowEvent;
@@ -47,6 +53,7 @@ package org.bigbluebutton.modules.videoconf.maps
   import org.bigbluebutton.modules.videoconf.events.ShareCameraRequestEvent;
   import org.bigbluebutton.modules.videoconf.events.StartBroadcastEvent;
   import org.bigbluebutton.modules.videoconf.events.StopBroadcastEvent;
+  import org.bigbluebutton.modules.videoconf.events.WebRTCWebcamRequestEvent;
   import org.bigbluebutton.modules.videoconf.model.VideoConfOptions;
   import org.bigbluebutton.modules.videoconf.views.AvatarWindow;
   import org.bigbluebutton.modules.videoconf.views.PublishWindow;
@@ -57,6 +64,8 @@ package org.bigbluebutton.modules.videoconf.maps
 
   public class VideoEventMapDelegate
   {
+    static private var PERMISSION_DENIED_ERROR:String = "PermissionDeniedError";
+
     private var options:VideoConfOptions = new VideoConfOptions();
     private var uri:String;
     
@@ -69,8 +78,9 @@ package org.bigbluebutton.modules.videoconf.maps
     private var _dispatcher:IEventDispatcher;
     private var _ready:Boolean = false;
     private var _isPublishing:Boolean = false;
-	  private var _isPreviewWebcamOpen:Boolean = false;
-	  private var _isWaitingActivation:Boolean = false;
+    private var _isPreviewWebcamOpen:Boolean = false;
+    private var _isWaitingActivation:Boolean = false; 
+    private var _chromeWebcamPermissionDenied:Boolean = false;
 
 	// Store userID of windows waiting for a NetConnection
 	private var pendingVideoWindowsList:Object = new Object();
@@ -257,6 +267,7 @@ package org.bigbluebutton.modules.videoconf.maps
       publishWindow.setResolution(camWidth, camHeight);
       publishWindow.videoOptions = options;
       publishWindow.quality = options.videoQuality;
+      publishWindow.chromePermissionDenied = _chromeWebcamPermissionDenied;
       publishWindow.resolutions = options.resolutions.split(",");
       
 
@@ -405,8 +416,8 @@ package org.bigbluebutton.modules.videoconf.maps
     }
     
     public function handleClosePublishWindowEvent(event:ClosePublishWindowEvent):void {
-			trace("Closing publish window");
-      if (_isPublishing) {
+      trace("Closing publish window");
+      if (_isPublishing || _chromeWebcamPermissionDenied) {
         stopBroadcasting();
       }
 			trace("Resetting flags for publish window.");
@@ -415,17 +426,17 @@ package org.bigbluebutton.modules.videoconf.maps
 			_isWaitingActivation = false;
     }
     
-    public function handleShareCameraRequestEvent(event:ShareCameraRequestEvent):void {     
-      if (options.skipCamSettingsCheck) {
-        skipCameraSettingsCheck();
-      } else {
-    	  trace("Webcam: "+_isPublishing + " " + _isPreviewWebcamOpen + " " + _isWaitingActivation);
-    	  if (!_isPublishing && !_isPreviewWebcamOpen && !_isWaitingActivation) {
-          openWebcamPreview(event.publishInClient);
-        }   			
-      }
+    public function handleShareCameraRequestEvent(event:ShareCameraRequestEvent):void {		
+		if (options.skipCamSettingsCheck) {
+			skipCameraSettingsCheck();
+		} else {
+			trace("Webcam: "+_isPublishing + " " + _isPreviewWebcamOpen + " " + _isWaitingActivation);
+			if (!_isPublishing && !_isPreviewWebcamOpen && !_isWaitingActivation) {
+				openWebcamPreview(event.publishInClient);
+			}
+		}
     }
-	
+
 	public function handleCamSettingsClosedEvent(event:BBBEvent):void{
 		_isPreviewWebcamOpen = false;
 	}
@@ -434,6 +445,7 @@ package org.bigbluebutton.modules.videoconf.maps
       var openEvent:BBBEvent = new BBBEvent(BBBEvent.OPEN_WEBCAM_PREVIEW);
       openEvent.payload.publishInClient = publishInClient;
       openEvent.payload.resolutions = options.resolutions;
+      openEvent.payload.chromePermissionDenied = _chromeWebcamPermissionDenied;
       
 	  _isPreviewWebcamOpen = true;
 	  

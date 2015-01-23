@@ -29,6 +29,10 @@ ToolTip {
 	cornerRadius    : 3;
 }
 
+.errorTip {
+	borderColor		: #3b3b3b;
+}
+
 .mypanelTitle {
   color: #444444;
   fontFamily: Arial;
@@ -316,6 +320,16 @@ DataGrid {
   fontFamily: Arial;
 }
 
+.deskshareControlButtonStyle {
+  fillAlphas: 1, 1, 1, 1;
+  fillColors: #fefeff, #e1e2e5, #ffffff, #eeeeee;
+  color: #5e5f63;
+  textRollOverColor: #5e5f63;
+  textSelectedColor: #5e5f63;
+  borderColor: #b9babc;  
+  cornerRadius: 17;
+}
+
 .videoMuteButtonStyle, .videoUnmutedButtonStyle, .videoSwitchPresenterButtonStyle, .videoEjectUserButtonStyle, .videoPrivateChatButtonStyle {
   fillAlphas: 1, 1, 1, 1;
   fillColors: #fefeff, #e1e2e5, #ffffff, #eeeeee;
@@ -437,14 +451,14 @@ DataGrid {
 
 }
 
-.presentationUploadFileFormatHintBoxStyle {
+.presentationUploadFileFormatHintBoxStyle, .desktopShareUsingChromeOnMacHintBoxStyle {
 	backgroundColor: #D4D4D4;
 	dropShadowEnabled: false;
 	paddingLeft: 10;
 	paddingRight: 10
 }
 
-.presentationUploadFileFormatHintTextStyle {
+.presentationUploadFileFormatHintTextStyle, .desktopShareUsingChromeOnMacHintTextStyle {
 	fontWeight: bold;
 }
 
@@ -496,7 +510,7 @@ DataGrid {
   fontWeight: bold;    
 }
 
-.micSettingsWindowHearFromHeadsetLabelStyle, .micSettingsWindowSpeakIntoMicLabelStyle, .micSettingsWindowMicNameLabelStyle {
+.micSettingsWindowHearFromHeadsetLabelStyle, .micSettingsWindowSpeakIntoMicLabelStyle, .micSettingsWindowMicNameLabelStyle, .webcamPermissionSettingsTextStyle {
   fontFamily: Arial;
   fontSize: 12;    
 }
@@ -816,4 +830,25 @@ Alert {
 
 .recordButtonStyleStop {
   icon:   Embed('assets/images/control-record-stop.png');
+}
+
+.statusImageStyle {
+  successImage:   Embed(source='assets/images/status_success.png');
+  warningImage:   Embed(source='assets/images/status_warning.png');
+  failImage:      Embed(source='assets/images/status_fail.png');
+}
+
+.warningButtonStyle {
+  icon:   Embed('assets/images/status_warning_20.png');
+}
+
+.statusTitleStyle {
+  fontWeight: bold;
+  fontSize: 12;
+  paddingBottom: 0;
+}
+
+.statusMessageStyle {
+  fontSize: 12;
+  paddingTop: 0;
 }

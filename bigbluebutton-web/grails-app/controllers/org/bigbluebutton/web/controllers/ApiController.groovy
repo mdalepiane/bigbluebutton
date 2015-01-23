@@ -20,6 +20,7 @@ package org.bigbluebutton.web.controllers
 
 import javax.servlet.ServletRequest;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -32,6 +33,7 @@ import org.bigbluebutton.api.domain.UserSession;
 import org.bigbluebutton.api.MeetingService;
 import org.bigbluebutton.api.domain.Recording;
 import org.bigbluebutton.web.services.PresentationService
+import org.bigbluebutton.presentation.PresentationUrlDownloadService;
 import org.bigbluebutton.presentation.UploadedPresentation
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +44,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.text.DateFormat;
-import org.bigbluebutton.api.Util;
 
 class ApiController {
   private static final Integer SESSION_TIMEOUT = 14400  // 4 hours    
@@ -58,7 +59,8 @@ class ApiController {
   PresentationService presentationService
   ParamsProcessorUtil paramsProcessorUtil
 	ClientConfigService configService
-  
+	PresentationUrlDownloadService presDownloadService
+	
   /* general methods */
   def index = {
     log.debug CONTROLLER_NAME + "#index"
@@ -301,6 +303,8 @@ class ApiController {
     boolean redirectImm = parseBoolean(params.redirectImmediately)
     
 	String internalUserID = RandomStringUtils.randomAlphanumeric(12).toLowerCase()
+
+	String authToken = RandomStringUtils.randomAlphanumeric(12).toLowerCase()
 	
     String externUserID = params.userID
     if (StringUtils.isEmpty(externUserID)) {
@@ -344,6 +348,7 @@ class ApiController {
 	}
 	
 	UserSession us = new UserSession();
+	us.authToken = authToken;
 	us.internalUserId = internalUserID
   us.conferencename = meeting.getName()
   us.meetingID = meeting.getInternalId()
@@ -380,7 +385,7 @@ class ApiController {
 	meetingService.addUserSession(session['user-token'], us);
 	
 	// Register user into the meeting.
-	meetingService.registerUser(us.meetingID, us.internalUserId, us.fullname, us.role, us.externUserID, us.internalUserId /* authToken for now */)
+	meetingService.registerUser(us.meetingID, us.internalUserId, us.fullname, us.role, us.externUserID, us.authToken)
 	
 	log.info("Session user token for " + us.fullname + " [" + session['user-token'] + "]")	
     session.setMaxInactiveInterval(SESSION_TIMEOUT);
@@ -419,7 +424,7 @@ class ApiController {
 				message("You have joined successfully.")
 				meeting_id(us.meetingID)
 				user_id(us.internalUserId)
-				auth_token(us.internalUserId)
+				auth_token(us.authToken)
 			  }
 			}
 		  }
@@ -739,10 +744,13 @@ class ApiController {
                       meetingID(m.getExternalId())
 				              meetingName(m.getName())
 				              createTime(m.getCreateTime())
+											createDate(formatPrettyDate(m.getCreateTime()))
                       attendeePW(m.getViewerPassword())
                       moderatorPW(m.getModeratorPassword())
                       hasBeenForciblyEnded(m.isForciblyEnded() ? "true" : "false")
                       running(m.isRunning() ? "true" : "false")
+											duration(m.duration)
+											hasUserJoined(m.hasUserJoined())
                     }
                   }
                 }
@@ -1348,6 +1356,7 @@ class ApiController {
               externMeetingID = us.externMeetingID
               externUserID = us.externUserID
               internalUserID = us.internalUserId
+              authToken = us.authToken
               role = us.role
               conference = us.conference
               room = us.room 
@@ -1356,6 +1365,7 @@ class ApiController {
               webvoiceconf = us.webvoiceconf
               mode = us.mode
               record = us.record
+							allowStartStopRecording = meeting.getAllowStartStopRecording()
               welcome = us.welcome
 							if (! StringUtils.isEmpty(meeting.moderatorOnlyMessage))
 							  modOnlyMessage = meeting.moderatorOnlyMessage
@@ -1739,27 +1749,23 @@ class ApiController {
   }
   
  def downloadAndProcessDocument(address, meetingId) {
-    log.debug("ApiController#downloadAndProcessDocument({$address}, ${meetingId})");
+    log.debug("ApiController#downloadAndProcessDocument(${address}, ${meetingId})");
     String presFilename = address.tokenize("/")[-1];
-    def filenameExt = Util.getFilenameExt(presFilename);
+    def filenameExt = presDownloadService.getFilenameExt(presFilename);
     String presentationDir = presentationService.getPresentationDir()
-    
-    
-    def presId = Util.generatePresentationId(presFilename)
-    File uploadDir = Util.createPresentationDirectory(meetingId, presentationDir, presId) 
+     
+    def presId = presDownloadService.generatePresentationId(presFilename)
+    File uploadDir = presDownloadService.createPresentationDirectory(meetingId, presentationDir, presId) 
     if (uploadDir != null) {
-        def newFilename = Util.createNewFilename(presId, filenameExt)
-        def pres = new File(uploadDir.absolutePath + File.separatorChar + newFilename);
-        def out
-        try {
-          out = new BufferedOutputStream(new FileOutputStream(pres))
-          out << new URL(address).openStream()             
-        } finally {
-          if (out != null) {
-            out.close()
-          }
-        }
-       processUploadedFile(meetingId, presId, presFilename, pres);
+      def newFilename = presDownloadService.createNewFilename(presId, filenameExt)
+			def newFilePath = uploadDir.absolutePath + File.separatorChar + newFilename
+				
+			if (presDownloadService.savePresentation(meetingId, newFilePath, address)) {
+				def pres = new File(newFilePath)
+				processUploadedFile(meetingId, presId, presFilename, pres);
+			} else {
+				log.error("Failed to download presentation=[${address}], meeting=[${meetingId}]")
+			}
     } 
   }
 
@@ -1780,6 +1786,13 @@ class ApiController {
     }
   }
 
+	def formatPrettyDate(timestamp) {
+//		SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+//		return ft.format(new Date(timestamp))	
+		
+		return new Date(timestamp).toString()	
+	}
+	
   def respondWithConferenceDetails(meeting, room, msgKey, msg) {
     response.addHeader("Cache-Control", "no-cache")
     withFormat {				
@@ -1787,15 +1800,18 @@ class ApiController {
         render(contentType:"text/xml") {
           response() {
             returncode(RESP_CODE_SUCCESS)
-			meetingName(meeting.getName())
+			      meetingName(meeting.getName())
             meetingID(meeting.getExternalId())
-			createTime(meeting.getCreateTime())
-			voiceBridge(meeting.getTelVoice())
-			dialNumber(meeting.getDialNumber())
+			      createTime(meeting.getCreateTime())
+						createDate(formatPrettyDate(meeting.getCreateTime()))
+			      voiceBridge(meeting.getTelVoice())
+			      dialNumber(meeting.getDialNumber())
             attendeePW(meeting.getViewerPassword())
             moderatorPW(meeting.getModeratorPassword())
             running(meeting.isRunning() ? "true" : "false")
-			recording(meeting.isRecord() ? "true" : "false")
+						duration(meeting.duration)
+						hasUserJoined(meeting.hasUserJoined())
+			      recording(meeting.isRecord() ? "true" : "false")
             hasBeenForciblyEnded(meeting.isForciblyEnded() ? "true" : "false")
             startTime(meeting.getStartTime())
             endTime(meeting.getEndTime())
@@ -1841,6 +1857,9 @@ class ApiController {
             attendeePW(meeting.getViewerPassword())
             moderatorPW(meeting.getModeratorPassword())
             createTime(meeting.getCreateTime())
+						createDate(formatPrettyDate(meeting.getCreateTime()))
+						hasUserJoined(meeting.hasUserJoined())
+						duration(meeting.duration)
             hasBeenForciblyEnded(meeting.isForciblyEnded() ? "true" : "false")
             messageKey(msgKey == null ? "" : msgKey)
             message(msg == null ? "" : msg)

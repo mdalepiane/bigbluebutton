@@ -262,7 +262,6 @@ package org.bigbluebutton.modules.layout.managers
     
 		public function applyRemoteLayout(e:LayoutFromRemoteEvent):void {
 			var layout:LayoutDefinition = e.layout;
-      _layoutModel.addLayout(layout);
 			applyLayout(layout);
 		}
 		
@@ -331,7 +330,9 @@ package org.bigbluebutton.modules.layout.managers
 		
 		private function updateCurrentLayout(layout:LayoutDefinition=null):LayoutDefinition {
       if (layout != null) {
+        if (_currentLayout) _currentLayout.currentLayout = false;
         _currentLayout = layout;
+        layout.currentLayout = true;
       } else {
         _currentLayout = LayoutDefinition.getLayout(_canvas, ResourceUtil.getInstance().getString('bbb.layout.combo.customName'));
       }

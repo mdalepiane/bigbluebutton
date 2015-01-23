@@ -31,11 +31,8 @@ public class ChatMessageListener implements MessageHandler{
 			String eventName = headerObject.get("name").toString();
 			eventName = eventName.replace("\"", "");
 
-			if (eventName.equalsIgnoreCase("public_chat_message_event") ||
-				eventName.equalsIgnoreCase("send_public_chat_message") || //identical
-				eventName.equalsIgnoreCase("private_chat_message_event") ||
-				eventName.equalsIgnoreCase("send_private_chat_message") ||//identical
-				eventName.equalsIgnoreCase("get_chat_history")){
+			if (eventName.equalsIgnoreCase(MessagingConstants.SEND_PUBLIC_CHAT_MESSAGE_REQUEST) ||
+				eventName.equalsIgnoreCase(MessagingConstants.SEND_PRIVATE_CHAT_MESSAGE_REQUEST)){
 
 				String meetingID = payloadObject.get("meeting_id").toString().replace("\"", "");
 				String requesterID = payloadObject.get("requester_id").toString().replace("\"", "");
@@ -52,7 +49,6 @@ public class ChatMessageListener implements MessageHandler{
 					String fromColor = messageObject.get("from_color").toString().replace("\"", "");
 					String fromTime = messageObject.get("from_time").toString().replace("\"", "");
 					String fromTimezoneOffset = messageObject.get("from_tz_offset").toString().replace("\"", "");
-					String fromLang = messageObject.get("from_lang").toString().replace("\"", ""); 
 					String toUserID = messageObject.get("to_userid").toString().replace("\"", "");
 					String toUsername = messageObject.get("to_username").toString().replace("\"", "");
 					String chatText = messageObject.get("message").toString().replace("\"", "");
@@ -64,18 +60,15 @@ public class ChatMessageListener implements MessageHandler{
 					map.put(ChatKeyUtil.FROM_COLOR, fromColor);
 					map.put(ChatKeyUtil.FROM_TIME, fromTime);
 					map.put(ChatKeyUtil.FROM_TZ_OFFSET, fromTimezoneOffset);
-					map.put(ChatKeyUtil.FROM_LANG, fromLang);
 					map.put(ChatKeyUtil.TO_USERID, toUserID);
 					map.put(ChatKeyUtil.TO_USERNAME, toUsername);
 					map.put(ChatKeyUtil.MESSAGE, chatText);
 
-					//public message
-					if(eventName.equalsIgnoreCase("public_chat_message_event") 
-							|| eventName.equalsIgnoreCase("send_public_chat_message")) {
+					if(eventName.equalsIgnoreCase(MessagingConstants.SEND_PUBLIC_CHAT_MESSAGE_REQUEST)) {
 						bbbGW.sendPublicMessage(meetingID, requesterID, map);
-					}	else if(eventName.equalsIgnoreCase("private_chat_message_event") 
-							|| eventName.equalsIgnoreCase("send_private_chat_message")) {
-						bbbGW.sendPrivateMessage(meetingID, requesterID, map); 
+					}
+					else if(eventName.equalsIgnoreCase(MessagingConstants.SEND_PRIVATE_CHAT_MESSAGE_REQUEST)) {
+						bbbGW.sendPrivateMessage(meetingID, requesterID, map);
 					}
 				}
 			}

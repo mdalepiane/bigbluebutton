@@ -27,8 +27,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.bigbluebutton.api.MeetingService;
 
 public class Meeting {
+	private static Logger log = LoggerFactory.getLogger(Meeting.class);
+	
 	private static final long MILLIS_IN_A_MINUTE = 60000;
 	
 	private String name;
@@ -48,6 +53,8 @@ public class Meeting {
 	private String logoutUrl;
 	private int maxUsers;
 	private boolean record;
+	private boolean autoStartRecording = false;
+	private boolean allowStartStopRecording = false;
 	private String dialNumber;
 	private String defaultAvatarURL;
 	private String defaultConfigToken;
@@ -67,6 +74,8 @@ public class Meeting {
 		logoutUrl = builder.logoutUrl;
 		defaultAvatarURL = builder.defaultAvatarURL;
 		record = builder.record;
+		autoStartRecording = builder.autoStartRecording;
+		allowStartStopRecording = builder.allowStartStopRecording;
    	duration = builder.duration;
    	webVoice = builder.webVoice;
    	telVoice = builder.telVoice;
@@ -212,6 +221,18 @@ public class Meeting {
 		return record;
 	}
 	
+	public boolean getAutoStartRecording() {
+		return autoStartRecording;
+	}
+	
+	public boolean getAllowStartStopRecording() {
+		return allowStartStopRecording;
+	}
+	
+	public boolean hasUserJoined() {
+		return userHasJoined;
+	}
+	
 	public void userJoined(User user) {
 		userHasJoined = true;
 		this.users.put(user.getInternalUserId(), user);
@@ -243,6 +264,7 @@ public class Meeting {
 	}
 	
 	public boolean wasNeverJoined(int expiry) {
+		log.debug("WasNeverJoined - hasStarted=[" + hasStarted() + "] && !hasEnded()=[" + !hasEnded() + "] && nobodyJoined(" + expiry + ")=" + nobodyJoined(expiry));
 		return (hasStarted() && !hasEnded() && nobodyJoined(expiry));
 	}
 	
@@ -252,9 +274,11 @@ public class Meeting {
 	}
 	
 	private boolean nobodyJoined(int expiry) {
-		if (meetingInfinite()) return false; 
+		if (expiry == 0) return false; /* Meeting stays created infinitely */
 		
 		long now = System.currentTimeMillis();
+		log.debug("nobodyJoined - !userHasJoined=[" + !userHasJoined + "] && (now - createdTime)=[" + (now - createdTime) + "] > (expiry * MILLIS_IN_A_MINUTE)=" + (expiry * MILLIS_IN_A_MINUTE));
+
 		return (!userHasJoined && (now - createdTime) >  (expiry * MILLIS_IN_A_MINUTE));
 	}
 
@@ -307,6 +331,8 @@ public class Meeting {
     	private String internalId;   	
     	private int maxUsers;
     	private boolean record;
+    	private boolean autoStartRecording;
+    	private boolean allowStartStopRecording;
     	private String moderatorPass;
     	private String viewerPass;
     	private int duration;
@@ -344,7 +370,17 @@ public class Meeting {
     		this.record = record;
     		return this;
     	}
+    	
+    	public Builder withAutoStartRecording(boolean start) {
+    		this.autoStartRecording = start;
+    		return this;
+    	}
 
+    	public Builder withAllowStartStopRecording(boolean allow) {
+    		this.allowStartStopRecording = allow;
+    		return this;
+    	}
+    	
     	public Builder withWebVoice(String w) {
     		this.webVoice = w;
     		return this;

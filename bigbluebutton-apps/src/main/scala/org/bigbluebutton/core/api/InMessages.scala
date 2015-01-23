@@ -15,10 +15,13 @@ case class KeepAliveMessage
 case class CreateMeeting
 (
   meetingID: String, 
+  externalMeetingID: String, 
   meetingName: String,
   recorded: Boolean, 
   voiceBridge: String,
-  duration: Long
+  duration: Long,
+  autoStartRecording: Boolean,
+  allowStartStopRecording: Boolean
 ) extends InMessage
                          
 case class InitializeMeeting(
@@ -516,3 +519,7 @@ case class GetStreamPathReplyInMsg(
     streamName: String,
     streamPath: String
 ) extends InMessage
+
+case class GetAllMeetingsRequest(
+    meetingID: String /** Not used. Just to satisfy trait **/
+    ) extends InMessage
