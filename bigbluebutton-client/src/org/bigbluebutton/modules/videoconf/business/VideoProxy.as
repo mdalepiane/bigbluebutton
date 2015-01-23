@@ -182,7 +182,7 @@ package org.bigbluebutton.modules.videoconf.business
 				connection.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
 				connection.addEventListener(NetStatusEvent.NET_STATUS, onPlayNetStatus);
 				connection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-				connection.connect(newUrl);
+				connection.connect(newUrl, UsersUtil.getInternalMeetingID(), UsersUtil.getMyUserID());
 				// TODO change to trace
 				LogUtil.debug("VideoProxy::handleStreamPathReceived:: Creating NetConnection for [" + newUrl + "]");
 				playConnectionDict[newUrl] = connection;
