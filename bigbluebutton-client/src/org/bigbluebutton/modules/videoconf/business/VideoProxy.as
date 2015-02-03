@@ -167,6 +167,12 @@ package org.bigbluebutton.modules.videoconf.business
 				streamPrefix = connectionPath.replace(serverIp + "/", "") + "/";
 			}
 
+			// Check if new URL is the same as default URL
+			if( newUrl == _url) {
+				// No proxy, no prefix
+				streamPrefix = "";
+			}
+
 			// Store URL for this stream
 			streamUrlDict[streamName] = newUrl;
 
