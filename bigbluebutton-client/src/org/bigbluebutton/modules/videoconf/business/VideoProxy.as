@@ -207,7 +207,7 @@ package org.bigbluebutton.modules.videoconf.business
 
 		public function playConnectionIsReadyFor(streamName:String):Boolean {
 			var streamUrl:String = streamUrlDict[streamName];
-			if(playConnectionDict[streamUrl].connected)
+			if(playConnectionDict[streamUrl] && playConnectionDict[streamUrl].connected)
 				return true;
 			return false;
 		}
