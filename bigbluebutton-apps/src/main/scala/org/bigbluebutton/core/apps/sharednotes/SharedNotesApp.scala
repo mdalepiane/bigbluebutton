@@ -75,4 +75,12 @@ trait SharedNotesApp {
       }
     }
   }
+
+  def handleMailSharedNoteRequest(msg: MailSharedNoteRequest) {
+    notes.synchronized {
+      val document = notes(msg.noteID)
+
+      outGW.send(new MailSharedNoteOutMsg(msg.meetingID, msg.requesterID, msg.email, document));
+    }
+  }
 }

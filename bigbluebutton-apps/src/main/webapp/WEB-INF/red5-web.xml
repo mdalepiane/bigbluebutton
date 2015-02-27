@@ -60,6 +60,9 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
   		<property name="recorderApplication"> 
   		  <ref bean="recorderApplication"/>
   		</property>	
+  		<property name="mailApplication">
+  		  <ref bean="mailApplication"/>
+  		</property>
   		<property name="connInvokerService"> 
   		  <ref bean="connInvokerService"/>
   		</property>		
@@ -125,6 +128,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
                 <ref bean="whiteboardEventRedisPublisher"/>
                 <ref bean="sharedNotesRed5ClientSender"/>
                 <ref bean="videoRed5ClientSender"/>
+                <ref bean="mailSender"/>
                 <ref bean="collectorGW"/>                   
             </set>        
          </property> 
@@ -213,7 +217,11 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
     <bean id="videoRed5ClientSender" class="org.bigbluebutton.core.apps.video.red5.VideoClientMessageSender">
       <constructor-arg index="0" ref="connInvokerService"/>
     </bean>
-        
+
+    <bean id="mailSender" class="org.bigbluebutton.core.apps.mail.MailSender">
+        <constructor-arg index="0" ref="mailApplication"/>
+    </bean>
+
 	<import resource="bbb-redis-pool.xml"/>
 	<import resource="bbb-redis-recorder.xml"/>
 	<import resource="bbb-app-chat.xml" />

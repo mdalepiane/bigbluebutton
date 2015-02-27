@@ -586,6 +586,13 @@ case class RequestAdditionalNotesSetRequest(
     additionalNotesSetSize: Int
 ) extends InMessage
 
+case class MailSharedNoteRequest(
+    meetingID: String,
+    requesterID: String,
+    noteID: String,
+    email: String
+) extends InMessage
+
 // Video
 case class GetStreamPath(
     meetingID: String,

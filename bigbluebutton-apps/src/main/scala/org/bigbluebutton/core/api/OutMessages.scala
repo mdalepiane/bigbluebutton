@@ -743,6 +743,14 @@ case class DestroyAdditionalNotesReply(
     version:String = Versions.V_0_0_1
 ) extends IOutMessage
 
+case class MailSharedNoteOutMsg(
+    meetingID: String,
+    requesterID: String,
+    email: String,
+    message: String,
+    version:String = Versions.V_0_0_1
+) extends IOutMessage
+
 // Value Objects
 case class MeetingVO(
     id: String, 

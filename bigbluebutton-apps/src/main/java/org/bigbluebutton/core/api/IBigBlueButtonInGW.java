@@ -132,6 +132,7 @@ public interface IBigBlueButtonInGW {
 			String noteID);
 	void requestAdditionalNotesSet(String meetingID, String requesterID,
 			int additionalNotesSetSize);
+	void mailSharedNote(String meetingID, String requesterID, String noteID, String email);
 	
 	// Video
 	void getStreamPath(String meetingID, String requesterID, String streamName, String defaultPath);

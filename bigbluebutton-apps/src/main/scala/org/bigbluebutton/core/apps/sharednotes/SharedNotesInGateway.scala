@@ -25,4 +25,8 @@ class SharedNotesInGateway(bbbGW: BigBlueButtonGateway) {
   def requestAdditionalNotesSet(meetingId: String, userId: String, additionalNotesSetSize: Int) {
     bbbGW.accept(new RequestAdditionalNotesSetRequest(meetingId, userId, additionalNotesSetSize));
   }
+
+  def mailSharedNote(meetingId: String, userId: String, noteId: String, email: String) {
+    bbbGW.accept(new MailSharedNoteRequest(meetingId, userId, noteId, email));
+  }
 }

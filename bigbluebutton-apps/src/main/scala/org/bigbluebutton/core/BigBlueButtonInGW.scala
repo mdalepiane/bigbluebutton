@@ -516,6 +516,10 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
     sharedNotesGW.requestAdditionalNotesSet(meetingId, userId, additionalNotesSetSize)
   }
 
+  def mailSharedNote(meetingId: String, userId: String, noteId: String, email: String) {
+    sharedNotesGW.mailSharedNote(meetingId, userId, noteId, email)
+  }
+
 	/*********************************************************************
 	 * Message Interface for Video
 	 *******************************************************************/
