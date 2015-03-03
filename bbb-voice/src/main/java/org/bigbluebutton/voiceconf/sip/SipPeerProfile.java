@@ -46,6 +46,9 @@ public class SipPeerProfile {
     /** User's name (used to build the contact_url if not explitely defined) */
     public String username = null;
 
+     /** User's ID (build from username ) */
+    public String userID = null;
+
     /** User's realm. */
     public String realm = null;
 
@@ -87,7 +90,7 @@ public class SipPeerProfile {
     public String callTo = null;
 
     /**
-     * Automatic answer time in seconds; time<0 corresponds to manual answer
+     * Automatic answer time in seconds; time < 0 corresponds to manual answer
      * mode.
      */
     public int acceptTime = 0;
@@ -99,13 +102,13 @@ public class SipPeerProfile {
     public int hangupTime = 20;
 
     /**
-     * Automatic call transfer time in seconds; time<0 corresponds to no auto
+     * Automatic call transfer time in seconds; time < 0 corresponds to no auto
      * transfer mode.
      */
     public int transferTime = -1;
 
     /**
-     * Automatic re-inviting time in seconds; time<0 corresponds to no auto
+     * Automatic re-inviting time in seconds; time < 0 corresponds to no auto
      * re-invite mode.
      */
     public int reInviteTime = -1;
@@ -132,7 +135,7 @@ public class SipPeerProfile {
     public boolean audio = true;
 
     /** Whether using video */
-    public boolean video = false;
+    public boolean video = true;
 
     /** Whether playing in receive only mode */
     public boolean recvOnly = false;
@@ -241,9 +244,11 @@ public class SipPeerProfile {
     	SipPeerProfile userProfile = new SipPeerProfile();
     	
     	userProfile.audioPort = source.audioPort;
+        userProfile.videoPort = source.videoPort;
            	
         String fromURL = "\"" + source.username + "\" <sip:" + source.username + "@" + source.realm + ">";
     	userProfile.username = source.username;
+    	userProfile.userID = source.userID;
         userProfile.passwd = source.passwd;
         userProfile.realm = source.realm;
         userProfile.fromUrl = fromURL;

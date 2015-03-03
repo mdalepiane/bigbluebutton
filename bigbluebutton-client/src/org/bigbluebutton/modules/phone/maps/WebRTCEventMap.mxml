@@ -39,6 +39,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 			import org.bigbluebutton.modules.phone.events.WebRTCMediaEvent;
 			import org.bigbluebutton.modules.phone.events.WebRTCUserChangedMicEvent;
 			import org.bigbluebutton.modules.phone.managers.WebRTCCallManager;
+			import org.bigbluebutton.main.events.BBBEvent;
 		]]>
 	</mx:Script>
 	
@@ -118,5 +119,9 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
   
   <EventHandlers type="{MadePresenterEvent.SWITCH_TO_VIEWER_MODE}">        
     <MethodInvoker generator="{WebRTCCallManager}" method="handleBecomeViewer"/>
+  </EventHandlers>
+  
+  <EventHandlers type="{BBBEvent.WEBRTC_VIDEO_STARTED}">
+  <MethodInvoker generator="{WebRTCCallManager}" method="startWebRTCVideo"  arguments="{[event.payload.streamPath]}"/>
   </EventHandlers>
 </EventMap>

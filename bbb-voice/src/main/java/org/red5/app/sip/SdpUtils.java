@@ -29,7 +29,7 @@ public class SdpUtils {
         if (!rtpmap.isEmpty()) {            
             payloadId = Integer.parseInt(rtpmap.substring(0, rtpmap.indexOf(" ")));
             
-            sipCodec = CodecFactory.getInstance().getSIPAudioCodec(payloadId);            
+            sipCodec = CodecFactory.getInstance().getSIPMediaCodec(payloadId);            
             if (sipCodec == null) {
             	log.error("Negotiated codec {} not found", payloadId);
             }
@@ -440,7 +440,7 @@ public class SdpUtils {
                     
                     AttributeField localAttribute = findAttributeByPayloadId(remoteAttribute.getAttributeName(), payloadId, localMedia );
                     
-                    Codec sipCodec = CodecFactory.getInstance().getSIPAudioCodec(Integer.valueOf( payloadId));
+                    Codec sipCodec = CodecFactory.getInstance().getSIPMediaCodec(Integer.valueOf( payloadId));
                     
                     if (sipCodec != null) {                        
                         String localAttibuteValue = "";

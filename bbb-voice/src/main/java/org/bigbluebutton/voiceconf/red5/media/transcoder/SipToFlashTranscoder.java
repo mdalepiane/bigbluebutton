@@ -21,11 +21,11 @@ package org.bigbluebutton.voiceconf.red5.media.transcoder;
 import org.bigbluebutton.voiceconf.red5.media.SipToFlashAudioStream;
 
 public interface SipToFlashTranscoder {
-	void transcode(byte[] audioData);
+	void transcode(byte[] mediaData);
     int getCodecId();
     int getIncomingEncodedFrameSize();
-    void handleData(byte[] audioData, int offset, int len);
-    void setTranscodedAudioListener(SipToFlashAudioStream sipToFlashAudioStream);
+    void handleData(byte[] mediaData, int offset, int len);
+    void setTranscodedMediaDataListener(SipToFlashAudioStream sipToFlashAudioStream);
     void start();
     void stop();
 }

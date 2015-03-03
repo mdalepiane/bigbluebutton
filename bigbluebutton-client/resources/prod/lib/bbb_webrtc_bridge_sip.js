@@ -1,5 +1,6 @@
 
-var userID, callerIdName, conferenceVoiceBridge, userAgent, userMicMedia, userWebcamMedia, currentSession, callTimeout, callActive, callICEConnected, callFailCounter, callPurposefullyEnded, uaConnected, transferTimeout;
+<<<<<<< HEAD
+var userID, callerIdName, conferenceVoiceBridge, userAgent, userMicMedia, userWebcamMedia, currentSession, callTimeout, callActive, callICEConnected, callFailCounter, callPurposefullyEnded, uaConnected, transferTimeout, swfReady=false;
 var inEchoTest = true;
 
 function webRTCCallback(message) {
@@ -35,6 +36,13 @@ function webRTCCallback(message) {
 			BBB.webRTCMediaFail();
 			break;
 	}
+
+function setSWFIsReady(){
+	swfReady=true;
+}
+
+function swfIsReady(){
+	return swfReady;
 }
 
 function callIntoConference(voiceBridge, callback) {
@@ -289,7 +297,13 @@ function make_call(username, voiceBridge, server, callback, recall) {
 	callPurposefullyEnded = false;
 	callFailCounter = 0;
 	console.log("Calling to " + voiceBridge + "....");
+
+	//invite returns the context , which is the InviteClientContext of sip.js
 	currentSession = userAgent.invite('sip:' + voiceBridge + '@' + server, options); 
+	//print 
+	console.log("Current Session: ");
+	console.log(currentSession.invite);
+
 	
 	// Only send the callback if it's the first try
 	if (recall === false) {
@@ -349,6 +363,7 @@ function make_call(username, voiceBridge, server, callback, recall) {
 		
 		if (callICEConnected === true) {
 			callback({'status':'started'});
+			getSWF("BigBlueButton").onWebRTCCallAccepted(getVideoParametersFromCurrentSession());
 		} else {
 			callback({'status':'waitingforice'});
 		}
@@ -373,6 +388,7 @@ function make_call(username, voiceBridge, server, callback, recall) {
 			callICEConnected = true;
 			if (callActive === true) {
 				callback({'status':'started'});
+				getSWF("BigBlueButton").onWebRTCCallAccepted(getVideoParametersFromCurrentSession());
 			}
 			clearTimeout(callTimeout);
 		}
@@ -384,10 +400,39 @@ function make_call(username, voiceBridge, server, callback, recall) {
 			callICEConnected = true;
 			if (callActive === true) {
 				callback({'status':'started'});
+				getSWF("BigBlueButton").onWebRTCCallAccepted(getVideoParametersFromCurrentSession());
 			}
 			clearTimeout(callTimeout);
 		}
 	});
+}
+
+function getSWF(movieName) 
+{ 
+    if (navigator.appName.indexOf("Microsoft") != -1) 
+    { 
+        return window[movieName]; 
+    } 
+    else 
+    { 
+        return document[movieName]; 
+    } 
+} 
+
+function getVideoParametersFromCurrentSession(){
+	//var remoteSdp = currentSession.mediaHandler.peerConnection.remoteDescription.sdp;
+	var remoteSdp = currentSession.videoRemoteDescription;
+	var resultString = "";
+	console.log("Current WebRTC Session's remote video SDP:");
+	console.log(remoteSdp);
+	
+	//video params	
+	var remoteVideoPort = remoteSdp.match(/m=video\ \d+/g)[0].split(" ")[1];
+	var localVideoPort = currentSession.localVideoPort; // save in the session and get it from there 
+	resultString += "remoteVideoPort="+remoteVideoPort;
+	resultString += ",localVideoPort="+localVideoPort;
+	
+	return resultString;
 }
 
 function webrtc_hangup(callback) {

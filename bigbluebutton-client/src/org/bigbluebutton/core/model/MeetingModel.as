@@ -12,6 +12,7 @@ package org.bigbluebutton.core.model
     private var _lockSettings:LockSettingsVO;
     private var _modOnlyMessage:String = null;
     private var _stunAndTurnServers: Object = new Object();
+    private var _freeswitchVideoName:String = "";
     
     public function MeetingModel(enforcer: MeetingModelSingletonEnforcer)
     {
@@ -61,6 +62,14 @@ package org.bigbluebutton.core.model
     
     public function get modOnlyMessage():String {
       return _modOnlyMessage;
+    }
+
+    public function set freeswitchVideoName(name:String):void {
+      _freeswitchVideoName = name;
+    }
+
+    public function get freeswitchVideoName():String {
+      return _freeswitchVideoName;
     }
   }
 }

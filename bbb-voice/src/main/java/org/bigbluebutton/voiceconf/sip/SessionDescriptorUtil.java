@@ -25,33 +25,46 @@ import org.zoolu.sdp.MediaField;
 import org.zoolu.sdp.SessionDescriptor;
 import org.zoolu.tools.Parser;
 
+import org.slf4j.Logger;
+import org.red5.logging.Red5LoggerFactory;
+
 public class SessionDescriptorUtil {
-	public static int getLocalAudioPort(SessionDescriptor localSdp) {
-        int localAudioPort = 0;
+    public static final String SDP_MEDIA_AUDIO = "audio";
+    public static final String SDP_MEDIA_VIDEO = "video";
+
+	public static int getLocalMediaPort(SessionDescriptor localSdp, String mediaName) {
+        Logger log = Red5LoggerFactory.getLogger(CallAgent.class, "sip");
+
+        int localMediaPort = 0;
         
         for (Enumeration e = localSdp.getMediaDescriptors().elements(); e.hasMoreElements();) {
             MediaField media = ((MediaDescriptor) e.nextElement()).getMedia();
-            if (media.getMedia().equals("audio")) {
-                localAudioPort = media.getPort();
+
+            if (media.getMedia().equals(mediaName)) {
+                localMediaPort = media.getPort();
+                log.debug("SessionDescriptorUtil => Found LOCAL media: " + media.getMedia() + " with port: " + localMediaPort);
             }
         }
         
-        return localAudioPort;
+        return localMediaPort;
     }
     
-	public static int getRemoteAudioPort(SessionDescriptor remoteSdp) {
-    	int remoteAudioPort = 0;
+	public static int getRemoteMediaPort(SessionDescriptor remoteSdp, String mediaName) {
+        Logger log = Red5LoggerFactory.getLogger(CallAgent.class, "sip");
+
+    	int remoteMediaPort = 0;
 
         for (Enumeration e = remoteSdp.getMediaDescriptors().elements(); e.hasMoreElements();) {
             MediaDescriptor descriptor = (MediaDescriptor) e.nextElement();
             MediaField media = descriptor.getMedia();
 
-            if (media.getMedia().equals("audio")) {
-                remoteAudioPort = media.getPort();
+            if (media.getMedia().equals(mediaName)) {
+                remoteMediaPort = media.getPort();
+                log.debug("SessionDescriptorUtil => Found REMOTE media: " + media.getMedia() + " with port: " + remoteMediaPort);
             }
         }
         
-        return remoteAudioPort;
+        return remoteMediaPort;
     }
 	
 	public static String getRemoteMediaAddress(SessionDescriptor remoteSdp) {

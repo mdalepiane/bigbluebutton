@@ -19,11 +19,12 @@
 package org.bigbluebutton.voiceconf.red5.media.transcoder;
 
 import java.util.Random;
-
-import org.bigbluebutton.voiceconf.red5.media.SipToFlashAudioStream;
 import org.red5.app.sip.codecs.Codec;
+import org.bigbluebutton.voiceconf.red5.media.SipToFlashAudioStream;
+
 import org.red5.logging.Red5LoggerFactory;
 import org.slf4j.Logger;
+
 
 /**
  * Speex wideband to speex wideband Sip to Flash Transcoder.
@@ -37,17 +38,20 @@ public class SpeexSipToFlashTranscoderImp implements SipToFlashTranscoder {
 	private Codec audioCodec = null;
 	private long timestamp = 0;
 	private static final int TS_INCREMENT = 20; // Determined from PCAP traces.
-	private TranscodedAudioDataListener transcodedAudioListener;
+	private TranscodedMediaDataListener transcodedMediaDataListener;
 
 	public SpeexSipToFlashTranscoderImp(Codec codec) {
 		this.audioCodec = codec;
-        Random rgen = new Random();
-        timestamp = rgen.nextInt(1000);
+        //Random rgen = new Random();
+        //timestamp = rgen.nextInt(1000); //for now, we're going to start the audio timestamp with 0
+        								  //this way, we hope a better synchronizing with the video packets
+										  //because we're going to start the video timestamp with 0 as well.
+										  // - see H264SipToFlashTranscoderImp.java.
 	}
 
 	@Override
 	public void transcode(byte[] audioData ) {
-		transcodedAudioListener.handleTranscodedAudioData(audioData, timestamp += TS_INCREMENT);
+		transcodedMediaDataListener.handleTranscodedMediaData(audioData, timestamp += TS_INCREMENT);
 	}
 	
 	@Override
@@ -68,8 +72,8 @@ public class SpeexSipToFlashTranscoderImp implements SipToFlashTranscoder {
 	}
 
 	@Override
-	public void setTranscodedAudioListener(SipToFlashAudioStream sipToFlashAudioStream) {
-		this.transcodedAudioListener = sipToFlashAudioStream;
+	public void setTranscodedMediaDataListener(SipToFlashAudioStream sipToFlashAudioStream) {
+		this.transcodedMediaDataListener = sipToFlashAudioStream;
 		
 	}
 

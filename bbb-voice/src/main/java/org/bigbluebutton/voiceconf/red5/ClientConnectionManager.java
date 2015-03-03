@@ -44,10 +44,10 @@ public class ClientConnectionManager {
 		}
 	}
 	
-	public void joinConferenceSuccess(String clientId, String usertalkStream, String userListenStream, String codec) {
+	public void joinConferenceSuccess(String clientId, String userSenderAudioStream, String userReceiverAudioStream, String audioCodec) {
 		ClientConnection cc = clients.get(clientId);
 		if (cc != null) {
-			cc.onJoinConferenceSuccess(usertalkStream, userListenStream, codec);
+			cc.onJoinConferenceSuccess(userSenderAudioStream, userReceiverAudioStream, audioCodec);
 		} else {
 			log.warn("Can't find client {} to inform user that she has joined the conference.", clientId);
 		}
@@ -70,4 +70,25 @@ public class ClientConnectionManager {
 			log.warn("Can't find client {} to inform user that she has left the conference.", clientId);
 		}
 	}
+
+	public void pausedVideo(String clientId) {
+		ClientConnection cc = clients.get(clientId);
+		if(cc != null) {
+			cc.onPausedVideo();
+		}
+		else {
+			log.warn("Can't find client {} to inform user that the video has been paused.", clientId);
+		}
+	}
+
+	public void startedVideo(String clientId, String videoStream) {
+		ClientConnection cc = clients.get(clientId);
+		if(cc != null) {
+			cc.onStartedVideo(videoStream);
+		}
+		else {
+			log.warn("Can't find client {} to inform user that the video has been restarted.", clientId);
+		}
+	}
+
 }

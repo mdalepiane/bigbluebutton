@@ -41,24 +41,35 @@ private static Logger log = Red5LoggerFactory.getLogger(ClientConnection.class, 
 		return connId;
 	}
 	
-    public void onJoinConferenceSuccess(String publishName, String playName, String codec) {
+    public void onJoinConferenceSuccess(String userSenderAudioStream, String userReceiverAudioStream, String audioCodec) {
     	log.debug("Notify client that {} [{}] has joined the conference.", username, userid);
         if (connection.isConnected()) {
-            connection.invoke("successfullyJoinedVoiceConferenceCallback", new Object[] {publishName, playName, codec});
+            connection.invoke("successfullyJoinedVoiceConferenceCallback",
+                    new Object[] {userSenderAudioStream, userReceiverAudioStream, audioCodec});
         }
     }
 
     public void onJoinConferenceFail() {
     	log.debug("Notify client that {} [{}] failed to join the conference.", username, userid);
         if (connection.isConnected()) {
-            connection.invoke("failedToJoinVoiceConferenceCallback", new Object[] {"onUaCallFailed"});
+            connection.invoke("failedToJoinConferenceCallback", new Object[] {"onUaCallFailed"});
         }
     }
 
     public void onLeaveConference() {
     	log.debug("Notify client that {} [{}] left the conference.", username, userid);
         if (connection.isConnected()) {
-            connection.invoke("disconnectedFromJoinVoiceConferenceCallback", new Object[] {"onUaCallClosed"});
+            connection.invoke("disconnectedFromJoinConferenceCallback", new Object[] {"onUaCallClosed"});
         }
+    }
+
+    public void onPausedVideo() {
+        log.debug("Notify client that video has been paused.");
+        connection.invoke("videoPaused");
+    }
+
+    public void onStartedVideo(String videoStream) {
+        log.debug("Notify client that video has been restarted.");
+        connection.invoke("videoStarted", new Object[] {videoStream});
     }
 }

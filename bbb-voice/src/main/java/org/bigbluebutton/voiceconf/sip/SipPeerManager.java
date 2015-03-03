@@ -49,8 +49,9 @@ public final class SipPeerManager {
         sipPeers = Collections.synchronizedMap(new HashMap<String, SipPeer>());
     }
 
-    public void createSipPeer(String peerId, String clientRtpIp, String host, int sipPort, int startRtpPort, int stopRtpPort) {
-    	SipPeer sipPeer = new SipPeer(peerId, clientRtpIp, host, sipPort, startRtpPort, stopRtpPort, messagingService);
+    public void createSipPeer(String peerId, String clientRtpIp, String host, int sipPort, 
+			int startAudioPort, int stopAudioPort, int startVideoPort, int stopVideoPort) {
+    	SipPeer sipPeer = new SipPeer(peerId, clientRtpIp, host, sipPort, startAudioPort, stopAudioPort, startVideoPort, stopVideoPort, messagingService);
     	sipPeer.setClientConnectionManager(clientConnManager);
     	sipPeer.setCallStreamFactory(callStreamFactory);
     	sipPeers.put(peerId, sipPeer);    	
@@ -82,20 +83,78 @@ public final class SipPeerManager {
     }
 
     
-    public void startTalkStream(String peerId, String clientId, IBroadcastStream broadcastStream, IScope scope) {
+    public void startBbbToFreeswitchAudioStream(String peerId, String userId, String clientId, IBroadcastStream broadcastStream, IScope scope) {
     	SipPeer sipUser = sipPeers.get(peerId);
+        log.debug("Start Audio Stream SipPeer");
     	if (sipUser != null) {
-    		sipUser.startTalkStream(clientId, broadcastStream, scope);
+            sipUser.startBbbToFreeswitchAudioStream(clientId,userId, broadcastStream, scope);
     	}
     }
     
-    public void stopTalkStream(String peerId, String clientId, IBroadcastStream broadcastStream, IScope scope) {
+    public void stopBbbToFreeswitchAudioStream(String peerId, String clientId, IBroadcastStream broadcastStream, IScope scope) {
     	SipPeer sipUser = sipPeers.get(peerId);
     	if (sipUser != null) {
-    		sipUser.stopTalkStream(clientId, broadcastStream, scope);
+    		sipUser.stopBbbToFreeswitchAudioStream(clientId, broadcastStream, scope);
     	}
     }
- 
+
+    public void startBbbToFreeswitchVideoStream(String peerId, String userId, IBroadcastStream broadcastStream, IScope scope) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            sipUser.startBbbToFreeswitchVideoStream(userId, broadcastStream, scope);
+        }
+    }
+    
+    public void stopBbbToFreeswitchVideoStream(String peerId, String userId, IBroadcastStream broadcastStream, IScope scope) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            sipUser.stopBbbToFreeswitchVideoStream(userId, broadcastStream, scope);
+        }
+    }
+
+    public void startBbbToFreeswitchWebRTCVideoStream(String peerId, String userId, String ip, String remoteVideoPort, String localVideoPort) throws PeerNotFoundException {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            sipUser.startBbbToFreeswitchWebRTCVideoStream(userId, ip, remoteVideoPort,localVideoPort);
+        }else throw new PeerNotFoundException("Can't find sip peer " + peerId);
+    }
+
+    public void stopBbbToFreeswitchWebRTCVideoStream(String peerId, String userId) throws PeerNotFoundException {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            sipUser.stopBbbToFreeswitchWebRTCVideoStream(userId);
+        }else throw new PeerNotFoundException("Can't find sip peer " + peerId);
+    }
+
+    public String getStreamType(String peerId, String clientId, String streamName) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            return sipUser.getStreamType(clientId, streamName);
+        }
+        else
+        {
+            log.debug("[SipPeerManager] Invalid peerId");
+            return null;
+        }
+    }
+
+    public boolean isAudioStream(String peerId, String clientId, IBroadcastStream broadcastStream) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            return sipUser.isAudioStream(clientId, broadcastStream);
+        }
+        else
+            return false;
+    }
+
+    public boolean isVideoStream(String peerId, String clientId, IBroadcastStream broadcastStream) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if (sipUser != null) {
+            return sipUser.isVideoStream(clientId, broadcastStream);
+        }
+        else
+            return false;
+    }
     
     private void remove(String userid) {
     	log.debug("Number of SipUsers in Manager before remove {}", sipPeers.size());

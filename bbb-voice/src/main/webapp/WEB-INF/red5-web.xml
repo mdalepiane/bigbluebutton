@@ -56,8 +56,12 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 		<property name="sipPort" value="${bbb.sip.app.port}" />
 		<property name="username" value="${sip.server.username}" />
 		<property name="password" value="${sip.server.password}" />
+
 		<property name="startAudioPort" value="${startAudioPort}" />
 		<property name="stopAudioPort" value="${stopAudioPort}" />
+		<property name="startVideoPort" value="${startVideoPort}" />
+		<property name="stopVideoPort" value="${stopVideoPort}" />
+
 		<property name="sipPeerManager" ref="sipPeerManager"/>
 		<property name="clientConnectionManager" ref="clientConnectionManager"/>
 	</bean>

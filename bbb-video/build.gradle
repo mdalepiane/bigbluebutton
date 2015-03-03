@@ -65,6 +65,7 @@ dependencies {
     providedCompile 'org/red5:red5-server:1.0.5-RELEASE@jar'
     providedCompile 'org.red5:red5-server-common:1.0.5-RELEASE@jar'
     providedCompile 'org.red5:red5-io:1.0.5-RELEASE@jar'
+    providedCompile 'org.red5:red5-client:1.0.5-RELEASE@jar'
   
 	// Logging
 	providedCompile 'ch.qos.logback:logback-core:1.1.2@jar'

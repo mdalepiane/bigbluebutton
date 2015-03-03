@@ -21,10 +21,10 @@ public class RedisMessagingService implements IMessagingService {
     if (matcher.matches()) {			
 	    String userid = matcher.group(1).trim();
 	    String name = matcher.group(2).trim();
-			String json = new UserConnectedToGlobalAudio(voiceConf, userid, name).toJson();
+		String json = new UserConnectedToGlobalAudio(voiceConf, userid, name).toJson();
 			sender.send(MessagingConstants.TO_MEETING_CHANNEL, json);
     } else {
-    	log.warn("Invalid calleridname [{}] in userConnectedToGlobalAudio as it does not match pattern (.*)-bbbID-(.*)");
+    log.warn("Invalid calleridname [{}] in userConnectedToGlobalAudio as it does not match pattern (.*)-bbbID-(.*)",callerIdName);
 			String json = new UserConnectedToGlobalAudio(voiceConf, callerIdName, callerIdName).toJson();
 			sender.send(MessagingConstants.TO_MEETING_CHANNEL, json);	
     }

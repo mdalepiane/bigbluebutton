@@ -24,9 +24,12 @@ import org.bigbluebutton.voiceconf.red5.media.transcoder.NellySipToFlashTranscod
 import org.bigbluebutton.voiceconf.red5.media.transcoder.SipToFlashTranscoder;
 import org.bigbluebutton.voiceconf.red5.media.transcoder.SpeexFlashToSipTranscoderImp;
 import org.bigbluebutton.voiceconf.red5.media.transcoder.SpeexSipToFlashTranscoderImp;
+import org.bigbluebutton.voiceconf.red5.media.transcoder.VideoProtocolConverter;
+import org.bigbluebutton.voiceconf.red5.media.transcoder.H264ProtocolConverter;
 import org.bigbluebutton.voiceconf.sip.SipConnectInfo;
 import org.red5.app.sip.codecs.Codec;
 import org.red5.app.sip.codecs.SpeexCodec;
+import org.red5.app.sip.codecs.H264Codec;
 import org.slf4j.Logger;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.scope.IScope;
@@ -35,74 +38,150 @@ import org.red5.server.api.stream.IBroadcastStream;
 public class CallStream implements StreamObserver {
     private final static Logger log = Red5LoggerFactory.getLogger(CallStream.class, "sip");
 
-    private FlashToSipAudioStream userTalkStream;
-    private SipToFlashAudioStream userListenStream;
-    public final Codec sipCodec;
+    public final static String MEDIA_TYPE_AUDIO = "audio";
+    public final static String MEDIA_TYPE_VIDEO = "video";
+
+    private String mediaType; 
+
+    private FlashToSipStream bbbToFreeswitchStream;  
+    private SipToFlashStream freeswitchToBbbStream; 
+
+    private SipToFlashTranscoder sipToFlashTranscoder;
+    private FlashToSipTranscoder flashToSipTranscoder;
+
+    private VideoProtocolConverter freeswitchToBbbVideoConverter;
+    private VideoProtocolConverter bbbToFreeswitchVideoConverter;
+
+    private final Codec sipCodec;
     private final SipConnectInfo connInfo;
     private final IScope scope;
     private CallStreamObserver callStreamObserver;
     
-    public CallStream(Codec sipCodec, SipConnectInfo connInfo, IScope scope) {        
+    private boolean isVideoPaused;
+    
+    public CallStream(Codec sipCodec, SipConnectInfo connInfo, IScope scope, String mediaType) {        
     	this.sipCodec = sipCodec;
     	this.connInfo = connInfo;
     	this.scope = scope;
+        this.mediaType = mediaType;
+        this.isVideoPaused = true;
     }
     
     public void addCallStreamObserver(CallStreamObserver observer) {
     	callStreamObserver = observer;
     }
     
-    public void start() {        
-    	SipToFlashTranscoder sipToFlashTranscoder = new SpeexSipToFlashTranscoderImp(sipCodec);
-    	FlashToSipTranscoder flashToSipTranscoder = new SpeexFlashToSipTranscoderImp(sipCodec);
+    public void start() {
+        
+        if(mediaType == MEDIA_TYPE_AUDIO) {
 
-		if (sipCodec.getCodecId() != SpeexCodec.codecId) {			
-			flashToSipTranscoder = new NellyFlashToSipTranscoderImp(sipCodec);
-			sipToFlashTranscoder = new NellySipToFlashTranscoderImp(sipCodec);
-		} 
-		
-		log.info("Using codec=" + sipCodec.getCodecName() + " id=" + sipCodec.getCodecId());
-		log.debug("Packetization [" + sipCodec.getIncomingPacketization() + "," + sipCodec.getOutgoingPacketization() + "]");
-		log.debug("Outgoing Frame size [" + sipCodec.getOutgoingEncodedFrameSize() + ", " + sipCodec.getOutgoingDecodedFrameSize() + "]");
-		log.debug("Incoming Frame size [" + sipCodec.getIncomingEncodedFrameSize() + ", " + sipCodec.getIncomingDecodedFrameSize() + "]");
 
-		userListenStream = new SipToFlashAudioStream(scope, sipToFlashTranscoder, connInfo.getSocket());
-		userListenStream.addListenStreamObserver(this);	
-		log.debug("Starting userListenStream so that users with no mic can listen.");
-		userListenStream.start();
-		userTalkStream = new FlashToSipAudioStream(flashToSipTranscoder, connInfo.getSocket(), connInfo); 
+            if(sipCodec.getCodecId() == SpeexCodec.codecId) {
+        	   sipToFlashTranscoder = new SpeexSipToFlashTranscoderImp(sipCodec);
+        	   flashToSipTranscoder = new SpeexFlashToSipTranscoderImp(sipCodec);
+            }
+
+    		else {		
+    			flashToSipTranscoder = new NellyFlashToSipTranscoderImp(sipCodec);
+    			sipToFlashTranscoder = new NellySipToFlashTranscoderImp(sipCodec);
+    		} 
+    		
+    		log.info("Using codec=" + sipCodec.getCodecName() + " id=" + sipCodec.getCodecId());
+    		log.debug("Packetization [" + sipCodec.getIncomingPacketization() + "," + sipCodec.getOutgoingPacketization() + "]");
+    		log.debug("Outgoing Frame size [" + sipCodec.getOutgoingEncodedFrameSize() + ", " + sipCodec.getOutgoingDecodedFrameSize() + "]");
+    		log.debug("Incoming Frame size [" + sipCodec.getIncomingEncodedFrameSize() + ", " + sipCodec.getIncomingDecodedFrameSize() + "]");
+
+
+            freeswitchToBbbStream = new SipToFlashAudioStream(scope, sipToFlashTranscoder, connInfo.getSocket());
+            freeswitchToBbbStream.addListenStreamObserver(this);   
+            log.debug("Starting freeswitchToBbbStream so that users with no mic can listen.");
+            freeswitchToBbbStream.start();
+            bbbToFreeswitchStream = new FlashToSipAudioStream(flashToSipTranscoder, connInfo.getSocket(), connInfo);
+        } 
+
+        else {
+
+            //mediaType is VIDEO
+
+            if (sipCodec.getCodecId() == H264Codec.codecId) {  
+
+                log.info("Using codec=" + sipCodec.getCodecName() + " id=" + sipCodec.getCodecId());
+                log.debug("Packetization [" + sipCodec.getIncomingPacketization() + "," + sipCodec.getOutgoingPacketization() + "]");
+                log.debug("Outgoing Frame size [" + sipCodec.getOutgoingEncodedFrameSize() + ", " + sipCodec.getOutgoingDecodedFrameSize() + "]");
+                log.debug("Incoming Frame size [" + sipCodec.getIncomingEncodedFrameSize() + ", " + sipCodec.getIncomingDecodedFrameSize() + "]");                
+
+
+                freeswitchToBbbVideoConverter = new H264ProtocolConverter();                
+                freeswitchToBbbStream = new SipToFlashVideoStream(scope, freeswitchToBbbVideoConverter, connInfo.getSocket()); 
+                freeswitchToBbbStream.addListenStreamObserver(this); 
+                  
+                log.debug("Starting freeswitchToBbbStream so that users with no cam can view.");
+                freeswitchToBbbStream.start();
+
+                bbbToFreeswitchVideoConverter = new H264ProtocolConverter(); 
+                bbbToFreeswitchStream = new FlashToSipVideoStream(bbbToFreeswitchVideoConverter, connInfo.getSocket(), connInfo);
+            }
+
+            else
+                log.debug("CallStream => Received VIDEO Codec is NOT H264: Doing nothing.");    
+        }      
     }
     
-    public String getTalkStreamName() {
-    	return userTalkStream.getStreamName();
+    public String getBbbToFreeswitchStreamName() {
+    	return bbbToFreeswitchStream.getStreamName();
     }
     
-    public String getListenStreamName() {
-    	return userListenStream.getStreamName();
+    public String getFreeswitchToBbbStreamName() {
+    	return freeswitchToBbbStream.getStreamName();
     }
 
     public Codec getSipCodec() {
 	return sipCodec;
     }
     
-    public void startTalkStream(IBroadcastStream broadcastStream, IScope scope) throws StreamException {
-    	log.debug("userTalkStream setup");
-    	userTalkStream.start(broadcastStream, scope);
-    	log.debug("userTalkStream Started");
+    public void startBbbToFreeswitchStream(IBroadcastStream broadcastStream, IScope scope) throws StreamException {
+    	log.debug("bbbToFreeswitchStream setup");
+    	bbbToFreeswitchStream.start(broadcastStream, scope);
+    	log.debug("bbbToFreeswitchStream Started");
     }
     
-    public void stopTalkStream(IBroadcastStream broadcastStream, IScope scope) {
-    	userTalkStream.stop(broadcastStream, scope);
+    public void stopBbbToFreeswitchStream(IBroadcastStream broadcastStream, IScope scope) {
+    	bbbToFreeswitchStream.stop(broadcastStream, scope);
     }
 
-    public void stop() {
+    public void stopFreeswitchToBbbStream() {
     	log.debug("Stopping call stream");
-      userListenStream.stop();
+        freeswitchToBbbStream.stop();
     }
 
 	@Override
 	public void onStreamStopped() {
 		log.debug("STREAM HAS STOPPED " + connInfo.getSocket().getLocalPort());
 		if (callStreamObserver != null) callStreamObserver.onCallStreamStopped();
+		isVideoPaused = true;
 	}
+
+    @Override
+    public void onStreamPaused() {
+        log.debug("STREAM HAS PAUSED " + connInfo.getSocket().getLocalPort());
+        if (callStreamObserver != null) callStreamObserver.onCallStreamPaused();
+        isVideoPaused = true;
+    }
+
+    @Override
+    public void onStreamStarted() {
+        log.debug("STREAM HAS RESTARTED " + connInfo.getSocket().getLocalPort());
+        if (callStreamObserver != null) callStreamObserver.onCallStreamStarted();
+        isVideoPaused = false;
+    }
+
+    @Override
+    public void onFirRequest() {
+        if (callStreamObserver != null) callStreamObserver.onFirRequest();
+
+    }
+    
+    public boolean isVideoPaused() {
+        return isVideoPaused;
+    }
 }

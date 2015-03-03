@@ -6049,6 +6049,23 @@ InviteClientContext.prototype = {
           offer = SIP.Hacks.Firefox.hackCLinInIP(offer);
 
           self.hasOffer = true;
+		  var localVideoPort = +Math.floor(Math.random() * 65535) + 20007;
+		  currentSession.localVideoPort = localVideoPort;
+          var videoMediaDescription = "m=video "+localVideoPort+" RTP/SAVPF 96\r\n";
+
+          //Freeswitch receives AUDIO directly from WebRTC (client),
+          //but the VIDEO will flow from bbb-voice.
+          //So, the VIDEO "c" attribute is going to be different.
+          var videoCIN = "c=IN IP4 "+userAgent.configuration.hostportParams+"\r\n" //should be taken from bbb-client
+
+          var videoCodec = "a=rtpmap:96 H264/90000/1\r\n"
+          var videoAttributes = "a=fmtp:96 profile-level-id=42800d; max-mbps=108000; max-fs=3840; max-br=1920; sar=13\r\n";
+
+          offer = offer.concat(videoMediaDescription);
+          offer = offer.concat(videoCIN);
+          offer = offer.concat(videoCodec);
+          offer = offer.concat(videoAttributes);
+
           self.request.body = offer;
           self.status = C.STATUS_INVITE_SENT;
           self.send();
@@ -6069,11 +6086,14 @@ InviteClientContext.prototype = {
   },
 
   receiveInviteResponse: function(response) {
+
     var cause, //localMedia,
       session = this,
       id = response.call_id + response.from_tag + response.to_tag,
       extraHeaders = [],
       options = {};
+
+    var videoDescription = "";  
 
     if (this.status === C.STATUS_TERMINATED || response.method !== SIP.C.INVITE) {
       return;
@@ -6138,6 +6158,19 @@ InviteClientContext.prototype = {
       }
       return;
     }
+
+    //Removing the video description...
+    var startVideoIndex = response.body.indexOf("m=video");
+    if(startVideoIndex != -1) {
+        videoDescription = response.body.substr(startVideoIndex, (response.body.length-1) ); 
+        response.body = response.body.replace(videoDescription,"");
+        this.videoRemoteDescription = videoDescription;
+        console.log(response.body);
+        console.log("====================================================");
+        console.log(videoDescription);
+    }
+
+    //FALTA PEGAR A VARIÁVEL videoDescription E MANDAR PRO CLIENT
 
     switch(true) {
       case /^100$/.test(response.status_code):

@@ -32,8 +32,9 @@ package org.bigbluebutton.modules.phone.managers {
 	import org.bigbluebutton.common.LogUtil;
 	import org.bigbluebutton.core.BBB;
 	import org.bigbluebutton.core.UsersUtil;
+	import org.bigbluebutton.core.model.MeetingModel;
 	import org.bigbluebutton.main.api.JSLog;
-	import org.bigbluebutton.modules.phone.events.ConnectionStatusEvent;
+	import org.bigbluebutton.main.events.BBBEvent;
 	import org.bigbluebutton.modules.phone.events.FlashCallConnectedEvent;
 	import org.bigbluebutton.modules.phone.events.FlashCallDisconnectedEvent;
 	import org.bigbluebutton.modules.phone.events.FlashVoiceConnectionStatusEvent;
@@ -51,10 +52,11 @@ package org.bigbluebutton.modules.phone.managers {
     private var externUserId:String;
 		private var uid:String;
 		private var meetingId:String;
+		private var voiceBridge:String;
 		
 		private var registered:Boolean = false;
-    private var closedByUser:Boolean = false;
-    
+		private var closedByUser:Boolean = false;
+
 		private var dispatcher:Dispatcher;
 		
 		public function ConnectionManager():void {
@@ -72,15 +74,16 @@ package org.bigbluebutton.modules.phone.managers {
 			return netConnection;
 		}
 		
-    public function setup(uid:String, externUserId:String, username:String, meetingId:String, uri:String):void {	
-      trace(LOG + "Setup uid=[" + uid + "] extuid=[" + externUserId + "] name=[" + username + "] uri=[" + uri + "]");
+    public function setup(uid:String, externUserId:String, username:String, meetingId:String, uri:String, voiceBridge:String):void {
+      trace(LOG + "Setup uid=[" + uid + "] extuid=[" + externUserId + "] name=[" + username + "] uri=[" + uri + "] voiceBridge=[" + voiceBridge + "]");
       this.uid = uid;	
       this.username  = username;
       this.meetingId = meetingId;
       this.uri   = uri;
       this.externUserId = externUserId;
+      this.voiceBridge = voiceBridge;
     }
-    
+
 		public function connect():void {				
       closedByUser = false;
       var isTunnelling:Boolean = BBB.initConnectionManager().isTunnelling;
@@ -94,7 +97,7 @@ package org.bigbluebutton.modules.phone.managers {
 			netConnection.client = this;
 			netConnection.addEventListener( NetStatusEvent.NET_STATUS , netStatus );
 			netConnection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
-			netConnection.connect(uri, meetingId, externUserId, username);
+			netConnection.connect(uri, meetingId, externUserId, username, voiceBridge);
 		}
 
 		public function disconnect(requestByUser:Boolean):void {
@@ -121,6 +124,9 @@ package org.bigbluebutton.modules.phone.managers {
           trace(LOG + "Connection success");
           JSLog.debug("Successfully connected to BBB Voice", logData);
           dispatcher.dispatchEvent(new FlashVoiceConnectionStatusEvent(FlashVoiceConnectionStatusEvent.CONNECTED));           
+          // Force freeswitch video start
+          if(MeetingModel.getInstance().freeswitchVideoName != "")
+            videoStarted(MeetingModel.getInstance().freeswitchVideoName);
           break;
         case "NetConnection.Connect.Failed":
           trace(LOG + "Connection failed");
@@ -151,25 +157,43 @@ package org.bigbluebutton.modules.phone.managers {
 		//			
 		//			CallBack Methods from Red5 
 		//
-		//********************************************************************************************		
-		public function failedToJoinVoiceConferenceCallback(msg:String):* {
-			trace(LOG + "failedToJoinVoiceConferenceCallback " + msg);
+		//********************************************************************************************
+		public function failedToJoinConferenceCallback(msg:String):* {
+			trace(LOG + "failedToJoinConferenceCallback " + msg);
 			var event:FlashCallDisconnectedEvent = new FlashCallDisconnectedEvent();
 			dispatcher.dispatchEvent(event);	
 		}
 		
-		public function disconnectedFromJoinVoiceConferenceCallback(msg:String):* {
-			trace(LOG + "disconnectedFromJoinVoiceConferenceCallback " + msg);
+		public function disconnectedFromJoinConferenceCallback(msg:String):* {
+			trace(LOG + "disconnectedFromJoinConferenceCallback " + msg);
 			var event:FlashCallDisconnectedEvent = new FlashCallDisconnectedEvent();
 			dispatcher.dispatchEvent(event);	
 		}	
 				
-     public function successfullyJoinedVoiceConferenceCallback(publishName:String, playName:String, codec:String):* {
-      trace(LOG + "successfullyJoinedVoiceConferenceCallback [" + publishName + "] : [" + playName + "] : [" + codec + "]");
-			var event:FlashCallConnectedEvent = new FlashCallConnectedEvent(publishName, playName, codec);
-			dispatcher.dispatchEvent(event);
+		public function successfullyJoinedVoiceConferenceCallback(publishAudioName:String, playAudioName:String, audioCodec:String):* {
+			trace(LOG + "successfullyJoinedConferenceCallback [" + publishAudioName + "] : [" + playAudioName + "] : [" + audioCodec + "]");
+
+			var audioEvent:FlashCallConnectedEvent = new FlashCallConnectedEvent(publishAudioName, playAudioName, audioCodec);
+			dispatcher.dispatchEvent(audioEvent);
 		}
-						
+
+		public function videoPaused():void {
+			LogUtil.debug("video is paused. Closing video window");
+			MeetingModel.getInstance().freeswitchVideoName = "";
+			var videoPaused:BBBEvent = new BBBEvent(BBBEvent.FREESWITCH_VIDEO_PAUSED);
+			dispatcher.dispatchEvent(videoPaused);
+		}
+
+		public function videoStarted(videoStream:String):void {
+			LogUtil.debug("video is starting. Opening video window");
+			MeetingModel.getInstance().freeswitchVideoName = videoStream;
+			var videoStarted:BBBEvent = new BBBEvent(BBBEvent.FREESWITCH_VIDEO_STARTED);
+			videoStarted.payload.streamName = videoStream;
+			videoStarted.payload.connection = netConnection;
+			dispatcher.dispatchEvent(videoStarted);
+		}
+
+								
 		//********************************************************************************************
 		//			
 		//			SIP Actions
@@ -184,6 +208,24 @@ package org.bigbluebutton.modules.phone.managers {
 			if (isConnected()) {
         trace(LOG + "hanging up call");
 				netConnection.call("voiceconf.hangup", null, "default");
+			}
+		}
+
+		public function webRTCVideoSend(videoParameters:String):void{
+      		//for test only 
+			netConnection.call("voiceconf.webRTCVideoSend", null, "default", username, videoParameters);
+			trace(LOG + "webRTC videoData sent to bbb-voice application. Video parameters: " + videoParameters);
+		}
+
+		public function onWebRTCCallAccepted(portParameters:String):void{
+			trace(LOG + "webRTC Call Accepted: communicating with bbb-voice");
+			netConnection.call("voiceconf.acceptWebRTCCall", null, "default", username, portParameters);
+		}
+
+		public function doHangUpWebRTCCall():void{
+			if (isConnected()) {
+		        trace(LOG + "hanging up webRTC Call on bbb-voice's context");
+						netConnection.call("voiceconf.hangUpWebRTCCall", null, "default");
 			}
 		}
 		

@@ -63,6 +63,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
       import org.bigbluebutton.modules.videoconf.business.TalkingButtonOverlay;
       import org.bigbluebutton.modules.videoconf.events.CloseAllWindowsEvent;
       import org.bigbluebutton.modules.videoconf.model.VideoConfOptions;
+      import org.bigbluebutton.util.i18n.ResourceUtil;
 			
 			private var ns:NetStream;			
 			private var globalDispatcher:Dispatcher;
@@ -96,6 +97,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 				addEventListener(MouseEvent.MOUSE_OVER, showButtons);
 				addEventListener(MouseEvent.MOUSE_OUT, hideButtons);
 				addEventListener(MouseEvent.DOUBLE_CLICK, onDoubleClick);
+				ResourceUtil.getInstance().addEventListener(Event.CHANGE, localeChanged); 
 				
 				createButtons();
 				addControlButtons();
@@ -121,6 +123,11 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 				
 				this.showCloseButton = videoOptions.showCloseButton;
 			}
+			
+      private function localeChanged(e:Event):void {
+         if (this.userID == "FreeSWITCH video")
+           this.title = ResourceUtil.getInstance().getString('bbb.video.freeSWITCH.title');
+      }
 			
       private function handleMadePresenterEvent(event:MadePresenterEvent):void {
         trace("******** VideoWindow: HandleMadePresenter event *********");

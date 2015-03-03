@@ -36,27 +36,58 @@ public class SdpUtils {
     /**
      * @return Returns the audio codec to be used on current session.
      */
-    public static Codec getNegotiatedAudioCodec(SessionDescriptor negotiatedSDP){
-        int payloadId;
-        String rtpmap;
-        Codec sipCodec = null;
-        
+    public static Codec getNegotiatedAudioCodec(SessionDescriptor negotiatedSDP) {     
         MediaDescriptor md = negotiatedSDP.getMediaDescriptor(Codec.MEDIA_TYPE_AUDIO );
-        rtpmap = md.getAttribute(Codec.ATTRIBUTE_RTPMAP).getAttributeValue();
-        
-        if (!rtpmap.isEmpty()) {            
-            payloadId = Integer.parseInt(rtpmap.substring(0, rtpmap.indexOf(" ")));
-            
-            sipCodec = CodecFactory.getInstance().getSIPAudioCodec(payloadId);            
-            if (sipCodec == null) {
-            	log.error("Negotiated codec {} not found", payloadId);
-            }
-            else {
-                log.info("Found codec: payloadType={}, payloadName={}.", sipCodec.getCodecId(), 
-                			sipCodec.getCodecName());
-            }
-        }        
-        return sipCodec;
+        if (md == null) {
+            log.info("No media descriptor for AUDIO.");
+            return null;
+        }
+
+        String rtpmap = md.getAttribute(Codec.ATTRIBUTE_RTPMAP).getAttributeValue();
+        log.info("getNegotiatedAudioCodec", "rtpmap = [" + rtpmap + "].");
+        if (rtpmap == null || rtpmap.isEmpty()) {
+                return null;
+        }
+                   
+        int payloadId = Integer.parseInt(rtpmap.substring(0, rtpmap.indexOf(" ")));
+        Codec sipAudioCodec = CodecFactory.getInstance().getSIPMediaCodec(payloadId);            
+        if (sipAudioCodec == null) 
+            log.error("Negotiated AUDIO codec {} not found", payloadId);  
+        else {
+            log.info("Found AUDIO codec: payloadType={}, payloadName={}.", sipAudioCodec.getCodecId(), 
+                			sipAudioCodec.getCodecName());
+        }
+               
+        return sipAudioCodec;
+    }
+
+
+    /**
+     * @return Returns the video codec to be used on current session.
+     */
+    public static Codec getNegotiatedVideoCodec(SessionDescriptor negotiatedSDP) {
+        MediaDescriptor md = negotiatedSDP.getMediaDescriptor(Codec.MEDIA_TYPE_VIDEO);
+        if (md == null) {
+            log.info("No media descriptor for VIDEO.");
+            return null;
+        }
+
+        String rtpmap = md.getAttribute(Codec.ATTRIBUTE_RTPMAP).getAttributeValue();
+        log.info("getNegotiatedVideoCodec", "rtpmap = [" + rtpmap + "].");
+        if (rtpmap == null || rtpmap.isEmpty()) {
+                return null;
+        }
+
+        int payloadId = Integer.parseInt(rtpmap.substring(0, rtpmap.indexOf(" ")));
+        Codec sipVideoCodec = CodecFactory.getInstance().getSIPMediaCodec(payloadId);
+        if (sipVideoCodec == null) {
+            log.error("Negotiated VIDEO codec {} not found", payloadId); 
+        } else {
+            log.info("Found VIDEO codec: payloadType={}, payloadName={}.", sipVideoCodec.getCodecId(), 
+                            sipVideoCodec.getCodecName());
+        }
+
+        return sipVideoCodec;
     }
     
     
@@ -196,9 +227,10 @@ public class SdpUtils {
                 Codec[] videoCodecs = CodecFactory.getInstance().getAvailableVideoCodecs();
                 Vector<AttributeField> videoAttributes = new Vector<AttributeField>();
                 
-                for (int videoIndex = 0; videoIndex < audioCodecsNumber; videoIndex++) {                    
+                for (int videoIndex = 0; videoIndex < videoCodecsNumber; videoIndex++) {                    
                     String payloadId = String.valueOf(videoCodecs[videoIndex].getCodecId());
                     String rtpmapParamValue = payloadId;
+
                     rtpmapParamValue += " " + videoCodecs[videoIndex].getCodecName();
                     rtpmapParamValue += "/" + videoCodecs[videoIndex].getSampleRate() + "/1";
                     
@@ -231,14 +263,14 @@ public class SdpUtils {
                     AttributeField videoAttribute = (AttributeField) attributesEnum.nextElement();
                     
                     if (initialDescriptor.getMediaDescriptor(Codec.MEDIA_TYPE_VIDEO) == null) {    
-                    	MediaField mf = new MediaField(Codec.MEDIA_TYPE_VIDEO, audioPort, 0, "RTP/AVP", formatList);
+                    	MediaField mf = new MediaField(Codec.MEDIA_TYPE_VIDEO, videoPort, 0, "RTP/AVP", formatList);
                         initialDescriptor.addMedia(mf, videoAttribute);
                     } else {
                         initialDescriptor.getMediaDescriptor(Codec.MEDIA_TYPE_VIDEO).addAttribute(videoAttribute);
                     }
                 }
                 
-                String[] commonVideoMediaAttributes = CodecFactory.getInstance().getCommonAudioMediaAttributes();
+                String[] commonVideoMediaAttributes = CodecFactory.getInstance().getCommonVideoMediaAttributes();
                 
                 if (commonVideoMediaAttributes != null) {                    
                     log.debug("Adding " + commonVideoMediaAttributes.length + " common video media attributes.");
@@ -358,13 +390,13 @@ public class SdpUtils {
                     for (Enumeration attributesEnum = newSdpAttributes.elements(); attributesEnum.hasMoreElements();) {                        
                         AttributeField mediaAttribute = (AttributeField) attributesEnum.nextElement();
                         
-                        if (newSdp.getMediaDescriptors().size() == 0) {  
+                        //if (newSdp.getMediaDescriptors().size() == 0) {  //maybe we're going to need this in the future...
                         	MediaField mf = new MediaField(localDescriptor.getMedia().getMedia(), 
                                     						localDescriptor.getMedia().getPort(), 
                                     						0, localDescriptor.getMedia().getTransport(), 
                                     						formatList); 
                             newSdp.addMediaDescriptor(new MediaDescriptor(mf, localDescriptor.getConnection()));
-                        }
+                        //}
                         
                         newSdp.getMediaDescriptor(localDescriptor.getMedia().getMedia()).addAttribute( mediaAttribute );
                     }
@@ -479,7 +511,7 @@ public class SdpUtils {
                     
                     AttributeField localAttribute = findAttributeByPayloadId(remoteAttribute.getAttributeName(), payloadId, localMedia );
                     
-                    Codec sipCodec = CodecFactory.getInstance().getSIPAudioCodec(Integer.valueOf( payloadId));
+                    Codec sipCodec = CodecFactory.getInstance().getSIPMediaCodec(Integer.valueOf( payloadId));
                     
                     if (sipCodec != null) {                        
                         String localAttibuteValue = "";

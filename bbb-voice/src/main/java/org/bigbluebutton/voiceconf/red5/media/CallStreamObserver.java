@@ -21,4 +21,7 @@ package org.bigbluebutton.voiceconf.red5.media;
 public interface CallStreamObserver {
 
 	void onCallStreamStopped();
+	void onCallStreamPaused();
+	void onCallStreamStarted();
+	void onFirRequest();
 }

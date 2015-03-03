@@ -56,13 +56,13 @@ package org.bigbluebutton.modules.phone.managers {
 		private var dispatcher:Dispatcher;
 		
     private var connManager:ConnectionManager;
-    
-		public function StreamManager(connMgr:ConnectionManager) {			
+
+		public function StreamManager(connMgr:ConnectionManager) {
 			dispatcher = new Dispatcher();
-      connManager = connMgr;
-//      useDefaultMic();
+			connManager = connMgr;
+//			useDefaultMic();
 		}
-	
+
     public function usePreferredMic(micIndex:int, micName:String):void {
       this.micIndex = micIndex;
       this.micName = micName;
@@ -184,7 +184,7 @@ package org.bigbluebutton.modules.phone.managers {
 			 */
 			incomingStream.bufferTime = 0;	
 			incomingStream.receiveAudio(true);
-			incomingStream.receiveVideo(false);
+			incomingStream.receiveVideo(true);
 		}
 		
 		private function setupOutgoingStream():void {

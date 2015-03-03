@@ -72,7 +72,8 @@
       var options:PhoneOptions = new PhoneOptions();
       var uid:String = String(Math.floor(new Date().getTime()));
       var uname:String = encodeURIComponent(UsersUtil.getMyExternalUserID() + "-bbbID-" + UsersUtil.getMyUsername()); 
-      connectionManager.setup(uid, UsersUtil.getMyUserID(), uname , UsersUtil.getInternalMeetingID(), options.uri);
+      connectionManager.setup(uid, UsersUtil.getMyUserID(), uname , UsersUtil.getInternalMeetingID(), options.uri,UsersUtil.getVoiceBridge());
+      connect();
     }
     
     private function isWebRTCSupported():Boolean {

@@ -24,7 +24,7 @@ public interface Transcoder {
 	byte[] transcodeAudio(byte[] srcAudio, int startOffset, int length);
 	void transcode(byte[] asaoBuffer, int offset, int num, byte[] transcodedData, int dataOffset, RtpStreamSender rtpSender);
 	void transcode(byte[] codedBuffer);
-	void addTranscodedAudioDataListener(TranscodedAudioDataListener listener);
+	void addTranscodedMediaDataListener(TranscodedMediaDataListener listener);
 	int getOutgoingEncodedFrameSize();
 
     int getCodecId();

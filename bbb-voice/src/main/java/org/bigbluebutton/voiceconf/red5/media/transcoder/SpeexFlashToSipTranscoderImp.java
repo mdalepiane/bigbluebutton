@@ -25,10 +25,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.bigbluebutton.voiceconf.red5.media.FlashToSipAudioStream.TranscodedAudioListener;
 import org.red5.app.sip.codecs.Codec;
 import org.red5.logging.Red5LoggerFactory;
 import org.slf4j.Logger;
+import org.bigbluebutton.voiceconf.red5.media.FlashToSipAudioStream;
 
 /**
  * Speex wideband to Speex wideband Flash to SIP transcoder.
@@ -47,7 +47,7 @@ public class SpeexFlashToSipTranscoderImp implements FlashToSipTranscoder {
 	private volatile boolean processAudioData = false;
 	private BlockingQueue<SpeexRtpAudioData> audioDataQ;
 	
-	private TranscodedAudioListener transcodedAudioListener;
+	private TranscodedMediaDataListener transcodedMediaDataListener;
 	
 	public SpeexFlashToSipTranscoderImp(Codec audioCodec) {
 		audioDataQ = new LinkedBlockingQueue<SpeexRtpAudioData>();
@@ -88,8 +88,8 @@ public class SpeexFlashToSipTranscoderImp implements FlashToSipTranscoder {
 	}
 
 	@Override
-	public void setTranscodedAudioListener(TranscodedAudioListener transcodedAudioListener) {
-		this.transcodedAudioListener = transcodedAudioListener;		
+	public void setTranscodedMediaDataListener(FlashToSipAudioStream flashToSipAudioStream) {
+		this.transcodedMediaDataListener = flashToSipAudioStream;		
 	}
 	
 	private void processAudioData() {
@@ -97,7 +97,7 @@ public class SpeexFlashToSipTranscoderImp implements FlashToSipTranscoder {
 			SpeexRtpAudioData srad;
 			try {
 				srad = audioDataQ.take();
-				transcodedAudioListener.handleTranscodedAudioData(srad.audioData, srad.timestamp);
+				transcodedMediaDataListener.handleTranscodedMediaData(srad.audioData, srad.timestamp);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

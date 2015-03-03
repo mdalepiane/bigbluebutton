@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.zoolu.sdp.AttributeField;
 import org.zoolu.sdp.SessionDescriptor;
 
+import org.red5.logging.Red5LoggerFactory;
+
 
 /**
  * A utility class for determine, instantiate and configure SIP codec,
@@ -12,9 +14,9 @@ import org.zoolu.sdp.SessionDescriptor;
  */
 public class CodecUtils {
 
-    protected static Logger log = LoggerFactory.getLogger( CodecUtils.class );
-    
-    
+    protected static Logger log = Red5LoggerFactory.getLogger( CodecUtils.class, "sip");
+
+       
     public static Codec initSipAudioCodec( Codec audioCodec, int defaultEncodePacketization, 
             int defaultDecodePacketization, SessionDescriptor localSDP, SessionDescriptor remoteSDP ) {
         
@@ -53,6 +55,36 @@ public class CodecUtils {
         
         return audioCodec;
     }
+
+    // For now, we don't know we're going to use this..in the future maybe we'll remove this method
+    public static Codec initSipVideoCodec( Codec videoCodec, int defaultEncodePacketization, 
+            int defaultDecodePacketization, SessionDescriptor localSDP, SessionDescriptor remoteSDP ) {
+        
+        AttributeField remotePtimeAttribute = 
+                remoteSDP.getMediaDescriptor( Codec.MEDIA_TYPE_VIDEO ).
+                getAttribute( Codec.ATTRIBUTE_PTIME );
+        
+        if ( remotePtimeAttribute != null ) {
+            log.debug("remotePtimeAttribute.getAttributeValue(): " + Integer.valueOf( remotePtimeAttribute.getAttributeValue() ));
+            
+        }
+        else log.debug("remotePtimeAttribute is null");
+        
+        AttributeField localPtimeAttribute = 
+                localSDP.getMediaDescriptor( Codec.MEDIA_TYPE_VIDEO ).
+                getAttribute( Codec.ATTRIBUTE_PTIME );
+        
+        if ( localPtimeAttribute != null ) {
+            log.debug("$$ localPtimeAttribute.getAttributeValue(): " + Integer.valueOf( localPtimeAttribute.getAttributeValue() ));
+        }
+        else log.debug("$$ localPtimeAttribute is null");
+
+        //Initialize encode and decode codec.
+        videoCodec.encodeInit( defaultEncodePacketization );
+        videoCodec.decodeInit( defaultDecodePacketization );
+        
+        return videoCodec;
+    }    
     
     /**
      * Converts a byte array into a short array. Since a byte is 8-bits,

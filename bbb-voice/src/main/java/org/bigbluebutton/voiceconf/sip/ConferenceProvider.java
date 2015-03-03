@@ -18,29 +18,58 @@
 */
 package org.bigbluebutton.voiceconf.sip;
 
-public class AudioConferenceProvider {
+import org.slf4j.Logger;
+import org.red5.logging.Red5LoggerFactory;
+
+public class ConferenceProvider {
+
+	private static Logger log = Red5LoggerFactory.getLogger(CallAgent.class, "sip");
+
 	private final String host;
 	private final int sipPort;
+
 	private final int startAudioPort;
 	private final int stopAudioPort;
-	private int curAvailablePort;
+	private final int startVideoPort;
+	private final int stopVideoPort;
+
+	private int curAvailableAudioPort;
+	private int curAvailableVideoPort;
 	
-	public AudioConferenceProvider(String host, int sipPort, int startAudioPort, int stopAudioPort) {
+	public ConferenceProvider(String host, int sipPort, int startAudioPort, int stopAudioPort, int startVideoPort, int stopVideoPort) {
 		this.host = host;
 		this.sipPort = sipPort;
+
 		this.startAudioPort = startAudioPort;
 		this.stopAudioPort = stopAudioPort;
-		curAvailablePort = startAudioPort;
+		this.startVideoPort = startVideoPort;
+		this.stopVideoPort = stopVideoPort;
+
+		curAvailableAudioPort = startAudioPort;
+		curAvailableVideoPort = startVideoPort;
 	}
 	
 	public int getFreeAudioPort() {
     	synchronized(this) {
-        	int availablePort = curAvailablePort;
-        	curAvailablePort++;
-    		if (curAvailablePort > stopAudioPort) curAvailablePort = startAudioPort;    
+        	int availablePort = curAvailableAudioPort;
+        	curAvailableAudioPort++;
+    		if (curAvailableAudioPort > stopAudioPort) curAvailableAudioPort = startAudioPort; 
+
+    		log.debug("ConferenceProvider => Getting free AUDIO port: " + availablePort);   
     		return availablePort;
     	}
     }
+
+	public int getFreeVideoPort() {
+    	synchronized(this) {
+        	int availablePort = curAvailableVideoPort;
+        	curAvailableVideoPort++;
+    		if (curAvailableVideoPort > stopVideoPort) curAvailableVideoPort = startVideoPort;  
+
+    		log.debug("ConferenceProvider => Getting free VIDEO port: " + availablePort);   
+    		return availablePort;
+    	}
+    }    
 	
 	public String getHost() {
 		return host;
@@ -52,5 +81,13 @@ public class AudioConferenceProvider {
 	
 	public int getStopAudioPort() {
 		return stopAudioPort;
+	}
+
+	public int getStartVideoPort() {
+		return startVideoPort;
+	}
+	
+	public int getStopVideoPort() {
+		return stopVideoPort;
 	}
 }

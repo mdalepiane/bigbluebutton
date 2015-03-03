@@ -26,8 +26,8 @@ import org.red5.server.api.scope.IScope;
 public class CallStreamFactory {
 	private IScope scope;
 	
-	public CallStream createCallStream(Codec sipCodec, SipConnectInfo connInfo) {
-		return new CallStream(sipCodec, connInfo, scope);
+	public CallStream createCallStream(Codec sipCodec, SipConnectInfo connInfo, String mediaType) {
+		return new CallStream(sipCodec, connInfo, scope, mediaType);
 	}
 	
 	public void setScope(IScope scope) {

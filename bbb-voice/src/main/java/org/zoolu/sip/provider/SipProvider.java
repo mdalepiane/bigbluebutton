@@ -1065,7 +1065,16 @@ public class SipProvider implements Configurable, TransportListener, TcpServerLi
          printLog("DEBUG: transaction-id: "+key,LogLevel.MEDIUM);
          if (listeners.containsKey(key))
          {  printLog("message passed to transaction: "+key,LogLevel.MEDIUM);
+       
             ((SipProviderListener)listeners.get(key)).onReceivedMessage(this,msg);
+
+            if(msg.isRequest())
+            {
+              int optStat = 200;
+              Message resp = MessageFactory.createResponse(msg,optStat,SipResponses.reasonOf(optStat),null);
+              ((TransactionServer)((SipProviderListener)listeners.get(key))).respondWith(resp);
+            }
+
             return;
          }
          // try to look for a dialog

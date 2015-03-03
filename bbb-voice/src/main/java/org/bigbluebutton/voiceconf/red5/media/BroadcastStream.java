@@ -43,8 +43,8 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.slf4j.Logger;
 import org.red5.server.api.stream.IStreamPacket;;
 
-public class AudioBroadcastStream implements IBroadcastStream, IProvider, IPipeConnectionListener {
-	final private Logger log = Red5LoggerFactory.getLogger(AudioBroadcastStream.class, "sip");
+public class BroadcastStream implements IBroadcastStream, IProvider, IPipeConnectionListener {
+	final private Logger log = Red5LoggerFactory.getLogger(BroadcastStream.class, "sip");
 	
 	private Set<IStreamListener> streamListeners = new CopyOnWriteArraySet<IStreamListener>();
 	private String publishedStreamName;
@@ -55,7 +55,7 @@ public class AudioBroadcastStream implements IBroadcastStream, IProvider, IPipeC
 	private StreamCodecInfo streamCodecInfo;
 	private Long creationTime;
   
-	public AudioBroadcastStream(String name) {
+	public BroadcastStream(String name) {
 		publishedStreamName = name;
 		livePipe = null;
 		log.trace("publishedStreamName: {}", name);
@@ -136,11 +136,11 @@ public class AudioBroadcastStream implements IBroadcastStream, IProvider, IPipeC
 	}
 
 	public void start() {
-		log.debug("Starting AudioBroadcastStream()");
+		log.debug("Starting BroadcastStream()");
 	}
 
 	public void stop() {
-		log.debug("Stopping AudioBroadcastStream");
+		log.debug("Stopping BroadcastStream");
 	}
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {

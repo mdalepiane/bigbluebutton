@@ -27,8 +27,8 @@ import org.bigbluebutton.voiceconf.red5.media.net.RtpPacket;
 import org.bigbluebutton.voiceconf.red5.media.net.RtpSocket;
 import org.red5.logging.Red5LoggerFactory;
 
-public class RtpStreamReceiver {
-    protected static Logger log = Red5LoggerFactory.getLogger(RtpStreamReceiver.class, "sip");
+public class RtpAudioStreamReceiver {
+    protected static Logger log = Red5LoggerFactory.getLogger(RtpAudioStreamReceiver.class, "sip");
     
     // Maximum blocking time, spent waiting for reading new bytes [milliseconds]     
 //    private static final int SO_TIMEOUT = 200;
@@ -41,13 +41,15 @@ public class RtpStreamReceiver {
     private final int payloadLength;
     private int lastSequenceNumber = 0;
     private long lastPacketTimestamp = 0;
+    private long lastTimestampDelta = 0;
     private boolean firstPacket = true;
     private boolean lastPacketDropped = false;
     private int successivePacketDroppedCount = 0;
     
     private long lastPacketReceived = 0;
+    private long baseTimestamp = 0;
     
-    public RtpStreamReceiver(DatagramSocket socket, int expectedPayloadLength) {
+    public RtpAudioStreamReceiver(DatagramSocket socket, int expectedPayloadLength) {
     	this.payloadLength = expectedPayloadLength;
         rtpSocket = new RtpSocket(socket);
 
@@ -97,11 +99,16 @@ public class RtpStreamReceiver {
         				log.debug("RTCP packet [" + rtpPacket.getRtcpPayloadType() + ", length=" + rtpPacket.getPayloadLength() + "] seqNum[rtpSeqNum=" + rtpPacket.getSeqNum() + ",lastSeqNum=" + lastSequenceNumber 
         					+ "][rtpTS=" + rtpPacket.getTimestamp() + ",lastTS=" + lastPacketTimestamp + "][port=" + rtpSocket.getDatagramSocket().getLocalPort() + "]");          			
         		} else {
-            		if (shouldHandlePacket(rtpPacket)) {        			            			
+            		if (shouldHandlePacket(rtpPacket)) {
+
+                        lastTimestampDelta = rtpPacket.getTimestamp() - lastPacketTimestamp;
+
+                        lastPacketTimestamp = rtpPacket.getTimestamp();
             			lastSequenceNumber = rtpPacket.getSeqNum();
-            			lastPacketTimestamp = rtpPacket.getTimestamp();
-            			processRtpPacket(internalBuffer, RTP_HEADER_SIZE, rtpPacket.getPayloadLength());
-            		} else {
+                        byte newBuffer[] = internalBuffer.clone();
+            			processRtpPacket(newBuffer, RTP_HEADER_SIZE, rtpPacket.getPayloadLength());
+            		
+                    } else {
             			if (log.isDebugEnabled())
             				log.debug("Corrupt packet [" + rtpPacket.getRtcpPayloadType() + "," + rtpPacket.getPayloadType() + ", length=" + rtpPacket.getPayloadLength() + "] seqNum[rtpSeqNum=" + rtpPacket.getSeqNum() + ",lastSeqNum=" + lastSequenceNumber 
             					+ "][rtpTS=" + rtpPacket.getTimestamp() + ",lastTS=" + lastPacketTimestamp + "][port=" + rtpSocket.getDatagramSocket().getLocalPort() + "]");          			       			
@@ -115,6 +122,7 @@ public class RtpStreamReceiver {
         	}
         }
         log.debug("Rtp Receiver stopped. Packet Received = " + packetReceivedCounter + "." );
+        if (listener != null) listener.onStoppedReceiving();
     }
     
     private boolean shouldDropDelayedPacket(RtpPacket rtpPacket) {
@@ -204,8 +212,8 @@ public class RtpStreamReceiver {
     	return false;
     }
 
-    private void processRtpPacket(byte[] rtpAudio, int offset, int len) {
-		if (listener != null) listener.onAudioDataReceived(rtpAudio, offset, len);
-		else log.debug("No listener for incoming audio packet");    	
+    private void processRtpPacket(byte[] rtpMediaData, int offset, int len) {
+		if (listener != null) listener.onMediaDataReceived(rtpMediaData, offset, len);
+		else log.debug("No listener for incoming media packet");    	
     }
 }

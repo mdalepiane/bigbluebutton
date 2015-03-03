@@ -18,15 +18,17 @@
  */
 package org.bigbluebutton.modules.videoconf.maps
 {
+  import com.asfusion.mate.events.Dispatcher;
   import com.asfusion.mate.utils.debug.Debugger;
   import com.asfusion.mate.utils.debug.DebuggerUtil;
   
   import flash.events.IEventDispatcher;
   import flash.external.ExternalInterface;
   import flash.media.Camera;
+  import flash.net.NetConnection;
   
   import mx.collections.ArrayCollection;
-  
+  import org.bigbluebutton.util.i18n.ResourceUtil;
   import org.bigbluebutton.common.LogUtil;
   import org.bigbluebutton.common.events.CloseWindowEvent;
   import org.bigbluebutton.common.events.OpenWindowEvent;
@@ -67,6 +69,7 @@ package org.bigbluebutton.modules.videoconf.maps
 
     private var options:VideoConfOptions = new VideoConfOptions();
     private var uri:String;
+    private var fsWindow:VideoWindow = null;
     
     private var webcamWindows:WindowManager = new WindowManager();
     
@@ -80,10 +83,13 @@ package org.bigbluebutton.modules.videoconf.maps
     private var _isPreviewWebcamOpen:Boolean = false;
     private var _isWaitingActivation:Boolean = false; 
     private var _chromeWebcamPermissionDenied:Boolean = false;
+    private var streamPath:String;
+    private var bbbEventDispatcher:Dispatcher;
     
     public function VideoEventMapDelegate(dispatcher:IEventDispatcher)
     {
       _dispatcher = dispatcher;
+      bbbEventDispatcher = new Dispatcher();
     }
     
     private function get me():String {
@@ -278,6 +284,11 @@ package org.bigbluebutton.modules.videoconf.maps
       dockWindow(publishWindow);  
     }
     
+    public function closeFreeswitchVideo():void {
+      /* TODO: fix this hard-coded userId. Maybe we could replace it by a hash. */
+      closeWindow("FreeSWITCH video");
+    }
+
     private function closeWindow(userID:String):void {
       if (! webcamWindows.hasWindow(userID)) {
         trace("VideoEventMapDelegate:: [" + me + "] closeWindow:: No window for [" + userID + "] [" + UsersUtil.getUserName(userID) + "]");
@@ -314,6 +325,30 @@ package org.bigbluebutton.modules.videoconf.maps
       openWindow(window);
       dockWindow(window);  
     }
+
+    public function openFreeswitchVideo(streamName:String, connection:NetConnection):void {
+
+      if(!connection.connected) {
+        LogUtil.warn("Not opening freeswitch window because the connection is not ready yet.");
+        return;
+      }
+
+      if(fsWindow != null) {
+        closeFreeswitchVideo();
+        fsWindow = null;
+      }
+        fsWindow = new VideoWindow();
+        fsWindow.title = ResourceUtil.getInstance().getString('bbb.video.freeSWITCH.title');
+        fsWindow.userID = "FreeSWITCH video";
+        fsWindow.videoOptions = options;       
+        fsWindow.resolutions = "640x480".split(",");
+
+        fsWindow.startVideo(connection, streamName);
+        webcamWindows.addWindow(fsWindow);
+        openWindow(fsWindow);
+        dockWindow(fsWindow);
+    }
+    
     
     private function openWindow(window:VideoWindowItf):void {
       var windowEvent:OpenWindowEvent = new OpenWindowEvent(OpenWindowEvent.OPEN_WINDOW_EVENT);
@@ -334,7 +369,8 @@ package org.bigbluebutton.modules.videoconf.maps
     }
     
     public function startPublishing(e:StartBroadcastEvent):void{
-	  LogUtil.debug("VideoEventMapDelegate:: [" + me + "] startPublishing:: Publishing stream to: " + proxy.connection.uri + "/" + e.stream);
+      streamPath= proxy.connection.uri + "/" + e.stream 
+	  LogUtil.debug("VideoEventMapDelegate:: [" + me + "] startPublishing:: Publishing stream to: " + streamPath);
       streamName = e.stream;
       proxy.startPublishing(e);
       
@@ -350,8 +386,12 @@ package org.bigbluebutton.modules.videoconf.maps
       
       _dispatcher.dispatchEvent(broadcastEvent);
 	  if (proxy.videoOptions.showButton) {
-		  button.publishingStatus(button.START_PUBLISHING);
+		  button.publishingStatus(button.START_PUBLISHING);		  
 	  }
+	  //dispatch webRTC Event for the video	  
+	  var webRTCEvent:BBBEvent = new BBBEvent(BBBEvent.WEBRTC_VIDEO_STARTED);
+	  webRTCEvent.payload.streamPath = streamPath;	  		
+	  bbbEventDispatcher.dispatchEvent(webRTCEvent);	  
     }
        
     public function stopPublishing(e:StopBroadcastEvent):void{

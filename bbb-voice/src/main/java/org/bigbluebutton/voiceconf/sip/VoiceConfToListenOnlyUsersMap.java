@@ -1,5 +1,8 @@
 package org.bigbluebutton.voiceconf.sip;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,5 +25,13 @@ public class VoiceConfToListenOnlyUsersMap {
 	
 	public int numUsers() {
 		return listenOnlyUsers.size();
+	}
+
+	public List<String> getUsers(String voiceConf){
+		List<String> users = new ArrayList<String>();
+		for(Iterator<String> i = listenOnlyUsers.keySet().iterator(); i.hasNext(); ) {
+			users.add(i.next());
+		}
+		return users;
 	}
 }

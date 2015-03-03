@@ -56,7 +56,7 @@
 			skipCheck="false"
 			showButton="true"
 			enabledEchoCancel="true"
-			useWebRTCIfAvailable="true"
+			useWebRTCIfAvailable="false"
 			showPhoneOption="false"
 			echoTestApp="9196"
 			dependsOn="UsersModule"
