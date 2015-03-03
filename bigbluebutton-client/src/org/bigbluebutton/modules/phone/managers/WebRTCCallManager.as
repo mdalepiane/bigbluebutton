@@ -130,17 +130,15 @@ package org.bigbluebutton.modules.phone.managers
     
 	  //callback called from javascript
 	  public function onWebRTCCallAccepted(parameters:String):void{
-		  if(echoTestDone){
-			  saveWebRTCVideoParameters(parameters);
+		  saveWebRTCVideoParameters(parameters);
 
-			  if(!connectionManager.isConnected()) {
-			      trace(LOG + "No connection with bbb-voice app, aborting webRTC Video");	   	        
-			  }else{
-			      connectionManager.onWebRTCCallAccepted(parameters);
-			      trace(LOG + "onWebRTCCallAccepted: webRTC Call registered on bbb-voice");
-			  }
+		  if(!connectionManager.isConnected()) {
+		      trace(LOG + "No connection with bbb-voice app, aborting webRTC Video");
+		  }else{
+		      connectionManager.onWebRTCCallAccepted(parameters);
+		      trace(LOG + "onWebRTCCallAccepted: webRTC Call registered on bbb-voice");
 		  }
-		  return;
+	  return;
 	  }
 	  
 	private function saveWebRTCVideoParameters(parameters:String):void{
