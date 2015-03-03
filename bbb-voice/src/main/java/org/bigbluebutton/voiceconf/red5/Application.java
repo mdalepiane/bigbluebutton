@@ -83,7 +83,7 @@ public class Application extends MultiThreadedApplicationAdapter {
     @Override
     public boolean appConnect(IConnection conn, Object[] params) {
       if (params.length == 0) {
-          params = new Object[3];
+          params = new Object[4];
           params[0] = "unknown-meetingid";
           params[1] = "unknown-userid";
           params[2] = "UNKNOWN-CALLER";
@@ -127,7 +127,7 @@ public class Application extends MultiThreadedApplicationAdapter {
   		
   		log.info("User joining bbb-voice: data={}", logStr);
       
-        if(voiceBridge != "UNKNOWN-VOICEBRIDGE") {
+        if(!voiceBridge.equals("UNKNOWN-VOICEBRIDGE")) {
             clientConnManager.createClient(clientId, userId, username, (IServiceCapableConnection) Red5.getConnectionLocal());
 
             String peerId = "default";

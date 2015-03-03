@@ -1,5 +1,3 @@
-
-<<<<<<< HEAD
 var userID, callerIdName, conferenceVoiceBridge, userAgent, userMicMedia, userWebcamMedia, currentSession, callTimeout, callActive, callICEConnected, callFailCounter, callPurposefullyEnded, uaConnected, transferTimeout, swfReady=false;
 var inEchoTest = true;
 
@@ -36,6 +34,7 @@ function webRTCCallback(message) {
 			BBB.webRTCMediaFail();
 			break;
 	}
+}
 
 function setSWFIsReady(){
 	swfReady=true;
