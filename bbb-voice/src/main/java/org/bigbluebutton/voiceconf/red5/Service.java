@@ -136,7 +136,9 @@ public class Service {
 		ffmpeg.setMaxKeyFrameInterval("10");
 		ffmpeg.setOutput(output);
 		
-		String[] command = ffmpeg.getFFmpegCommand(true);
+		//String[] command = ffmpeg.getFFmpegCommand(true);
+		String[] command = {"/usr/local/bin/ffmpeg", "-i", inputLive, "-vcodec", "vp8",
+				"-f", "rtp", "-payload_type", "105", output};
 		
 		// Free local port before starting ffmpeg
 		//localVideoSocket.close();

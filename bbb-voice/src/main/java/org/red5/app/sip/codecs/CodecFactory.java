@@ -21,7 +21,8 @@ public class CodecFactory {
 
     // Available video codecs
     private static final int videoCodecH264 = H264Codec.codecId;
-    private int[] availableVideoCodecsId = {videoCodecH264};  
+    private static final int videoCodecVP8 = VP8Codec.codecId;
+    private int[] availableVideoCodecsId = {videoCodecVP8};
 
 
     private static CodecFactory singletonSIPCodecFactory = new CodecFactory(); 
@@ -60,6 +61,9 @@ public class CodecFactory {
             case videoCodecH264:
                 sipCodec = new H264Codec();
                 break;
+            case videoCodecVP8:
+            	sipCodec = new VP8Codec();
+            	break;
 
             default:
                 sipCodec = null;
