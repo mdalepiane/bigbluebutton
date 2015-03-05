@@ -8,11 +8,21 @@ loadLib = (libname) ->
 
   Meteor.Loader.loadJs("http://#{window.location.hostname}/client/lib/#{libname}", successCallback, 10000).fail(retryMessageCallback)
 
+# Helper to load javascript libraries from the BBB server
+loadLib2 = (libname) ->
+  successCallback = ->
+
+  retryMessageCallback = (param) ->
+    #Meteor.log.info "Failed to load library", param
+    console.log "Failed to load library", param
+
+  Meteor.Loader.loadJs("./#{libname}", successCallback, 10000).fail(retryMessageCallback)
+
 # These settings can just be stored locally in session, created at start up
 Meteor.startup ->
 
   # Load SIP libraries before the application starts
-  loadLib('sip.js')
+  loadLib2('sip.js')
   loadLib('bbb_webrtc_bridge_sip.js')
 
   @SessionAmplify = _.extend({}, Session,
