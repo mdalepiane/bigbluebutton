@@ -1,33 +1,25 @@
 inviteSubmit = function() {
-  var ua;
-  
+  var userName = BBB.getMyUserName();
+  var serverIP = window.location.hostname;
+
   var configuration = {
-    //uri: 'sip:' + encodeURIComponent(username) + '@' + server,
-    wsServers: 'ws://10.0.3.97/ws',
-    displayName: BBB.getMyUserID() + "-bbbID-" + BBB.getMyUserName(),
+    uri: 'sip:' + userName + '@' + serverIP,
+    wsServers: 'ws://' + serverIP + '/ws',
+    displayName: BBB.getMyUserID() + "-bbbID-" + userName,
     register: false,
     traceSip: true,
     autostart: false,
     userAgentString: "BigBlueButton"
+    // TODO: Not sure what to do with these:
 //    stunServers: stunsConfig['stunServers'],
 //    turnServers: stunsConfig['turnServers']
   };
   
-  // TODO: get voice bridge
-  var uri = "72014@10.0.3.97";
-  configuration["uri"] = uri;
+  var uri = BBB.getMyVoiceBridge() + "@" + serverIP;
 
-  console.log("CONFIGURATION");
-  console.log(configuration);
-  ua = new SIP.UA(configuration);
+  var ua = new SIP.UA(configuration);
   ua.start();
 
-//  ua.on('invite', function (session) {
-//    console.log("UA invite");
-//    createNewSessionUI(session.remoteIdentity.uri, session);
-//  });
-
-  console.log("inviteSubmit START");
   // Send invite
   var session = ua.invite(uri, {
     media: {
@@ -40,11 +32,9 @@ inviteSubmit = function() {
 
   // Create new Session and append it to list
   var ui = createNewSessionUI(uri, session);
-  console.log("inviteSubmit END");
 }
 
 function createNewSessionUI(uri, session) {
-  console.log("CREATING UI START");
   var sessionUI = {};
 
   sessionUI.video          = document.getElementById('video-window');
@@ -55,25 +45,20 @@ function createNewSessionUI(uri, session) {
   }
 
     session.on('accepted', function (a,b) {
-        console.log("SESSION ACCEPTED");
-        console.log(a + b);
+      console.log("Session accepted");
       session.mediaHandler.render(sessionUI.renderHint);
     });
 
     session.mediaHandler.on('addStream', function (a,b) {
-        console.log("SESSION ADDSTREAM");
-        console.log(a + b);
+      console.log("Session addStream");
       session.mediaHandler.render(sessionUI.renderHint);
     });
 
     session.on('rejected', function (a,b) {
-        console.log(a + b);
-        console.log("SESSION REJECTED");
+        console.warn("Session rejected");
     });
 
     session.on('failed', function (a,b) {
-        console.log(a + b);
-        console.log("SESSION FALIED");
+        console.warn("Session failed");
     });
-  console.log("CREATING UI END");
 }
