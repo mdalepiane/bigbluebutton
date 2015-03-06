@@ -238,16 +238,18 @@ Handlebars.registerHelper "visibility", (section) ->
   setTimeout(redrawWhiteboard, 0)
 
 @toggleVoiceCall = (event) ->
-  if BBB.amISharingAudio()
-    hangupCallback = ->
-      console.log "left voice conference"
-    BBB.leaveVoiceConference hangupCallback #TODO should we apply role permissions to this action?
-  else
-    # create voice call params
-    joinCallback = (message) ->
-      console.log "started webrtc_call"
-    BBB.joinVoiceConference joinCallback # make the call #TODO should we apply role permissions to this action?
-  return false
+   inviteSubmit()
+   return true
+#  if BBB.amISharingAudio()
+#    hangupCallback = ->
+#      console.log "left voice conference"
+#    BBB.leaveVoiceConference hangupCallback #TODO should we apply role permissions to this action?
+#  else
+#    # create voice call params
+#    joinCallback = (message) ->
+#      console.log "started webrtc_call"
+#    BBB.joinVoiceConference joinCallback # make the call #TODO should we apply role permissions to this action?
+#  return false
 
 @toggleWhiteBoard = ->
   setInSession "display_whiteboard", !getInSession "display_whiteboard"
