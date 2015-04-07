@@ -452,4 +452,12 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
 	  voiceGW.voiceRecording(meetingId, recordingFile, 
 			            timestamp, recording)
 	}
+
+  def sipVideoPaused(meetingId: String) {
+    voiceGW.sipVideoPaused(meetingId)
+  }
+
+  def sipVideoResumed(meetingId: String) {
+    voiceGW.sipVideoResumed(meetingId)
+  }
 }

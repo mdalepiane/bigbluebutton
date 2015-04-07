@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bigbluebutton.webconference.voice.events.ConferenceEventListener;
+import org.bigbluebutton.webconference.voice.events.VideoPausedEvent;
+import org.bigbluebutton.webconference.voice.events.VideoResumedEvent;
 import org.bigbluebutton.webconference.voice.events.VoiceUserJoinedEvent;
 import org.bigbluebutton.webconference.voice.events.VoiceUserLeftEvent;
 import org.bigbluebutton.webconference.voice.events.VoiceUserMutedEvent;
@@ -24,6 +26,8 @@ public class ESLEventListener implements IEslEventListener {
     private static final String STOP_TALKING_EVENT = "stop-talking";
     private static final String START_RECORDING_EVENT = "start-recording";
     private static final String STOP_RECORDING_EVENT = "stop-recording";
+    private static final String VIDEO_PAUSED_EVENT = "video-paused";
+    private static final String VIDEO_RESUMED_EVENT = "video-resumed";
     
     private ConferenceEventListener conferenceEventListener;
     
@@ -174,9 +178,27 @@ public class ESLEventListener implements IEslEventListener {
     	return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
     }
     
-	@Override
-	public void eventReceived(EslEvent event) {
-		System.out.println("ESL Event Listener received event=[" + event.getEventName() + "]");
+    @Override
+    public void eventReceived(EslEvent event) {
+        log.debug("ESL Event Listener received event=[" + event.getEventName() + "]");
+
+        String action = event.getEventHeaders().get("Action");
+        String confName = event.getEventHeaders().get("Conference-Name");
+        if (action != null && confName != null) {
+            switch (action) {
+                case VIDEO_PAUSED_EVENT:
+                    VideoPausedEvent vPaused = new VideoPausedEvent(confName);
+                    conferenceEventListener.handleConferenceEvent(vPaused);
+                    break;
+                case VIDEO_RESUMED_EVENT:
+                    VideoResumedEvent vResumed = new VideoResumedEvent(confName);
+                    conferenceEventListener.handleConferenceEvent(vResumed);
+                    break;
+
+                default:
+                    log.debug("Unknown conference Action [{}]", action);
+            }
+        }
 //        if (event.getEventName().equals(FreeswitchHeartbeatMonitor.EVENT_HEARTBEAT)) {
 ////           setChanged();
 //           notifyObservers(event);

@@ -409,7 +409,17 @@ trait UsersApp {
       outGW.send(new UserVoiceTalking(meetingID, recorded, voiceBridge, nu))        
     }     
   }
-  
+
+  def handleSipVideoPaused(msg: SipVideoPaused) {
+    // TODO
+    logger.info("SIP video paused: mid=[" + meetingID + "]")
+  }
+
+  def handleSipVideoResumed(msg: SipVideoResumed) {
+    // TODO
+    logger.info("SIP video resumed: mid=[" + meetingID + "]")
+  }
+
   def handleAssignPresenter(msg: AssignPresenter):Unit = {
 	assignNewPresenter(msg.newPresenterID, msg.newPresenterName, msg.assignedBy)
   } 

@@ -10,4 +10,6 @@ public interface IVoiceConferenceService {
   void voiceUserTalking(String meetingId, String userId, Boolean talking);
   void voiceStartedRecording(String conference, String recordingFile, 
 		  String timestamp, Boolean recording);
+  void videoPaused(String meetingId);
+  void videoResumed(String meetingId);
 }
