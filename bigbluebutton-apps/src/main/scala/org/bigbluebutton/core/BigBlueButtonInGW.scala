@@ -460,4 +460,8 @@ class BigBlueButtonInGW(bbbGW: BigBlueButtonGateway, presUtil: PreuploadedPresen
   def sipVideoResumed(meetingId: String) {
     voiceGW.sipVideoResumed(meetingId)
   }
+
+  def activeTalkerChanged(meetingId: String, userId: String) {
+    voiceGW.activeTalkerChanged(meetingId, userId)
+  }
 }

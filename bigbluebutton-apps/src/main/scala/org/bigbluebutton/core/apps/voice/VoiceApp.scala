@@ -8,27 +8,18 @@ trait VoiceApp {
   
   val outGW: MessageOutGateway
 
-  def handleMuteAllExceptPresenterRequest(msg: MuteAllExceptPresenterRequest) {
-      
+  def handleSipVideoPaused(msg: SipVideoPaused) {
+    isSipVideoPresent = false
+    outGW.send(new SipVideoUpdated(meetingID, recorded, isSipVideoPresent, activeTalker))
   }
-  
-  def handleMuteMeetingRequest(msg: MuteMeetingRequest) {
-      
+
+  def handleSipVideoResumed(msg: SipVideoResumed) {
+    isSipVideoPresent = true
+    outGW.send(new SipVideoUpdated(meetingID, recorded, isSipVideoPresent, activeTalker))
   }
-    
-  def handleIsMeetingMutedRequest(msg: IsMeetingMutedRequest) {
-      
-  }
-    
-  def handleMuteUserRequest(msg: MuteUserRequest) {
-      
-  }
-    
-  def handleLockUserRequest(msg: LockUserRequest) {
-      
-  }
-    
-  def handleEjectUserRequest(msg: EjectUserFromVoiceRequest) {
-      
+
+  def handleActiveTalkerChanged(msg: ActiveTalkerChanged) {
+    activeTalker = msg.activeTalker
+    outGW.send(new SipVideoUpdated(meetingID, recorded, isSipVideoPresent, activeTalker))
   }
 }

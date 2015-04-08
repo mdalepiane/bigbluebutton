@@ -481,6 +481,11 @@ case class SipVideoResumed (
     meetingID: String
 ) extends InMessage
 
+case class ActiveTalkerChanged (
+    meetingID: String,
+    activeTalker: String
+) extends InMessage
+
 // Whiteboard
 case class SendWhiteboardAnnotationRequest(
     meetingID: String, 

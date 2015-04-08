@@ -23,6 +23,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.bigbluebutton.webconference.voice.events.VideoFloorChangedEvent;
 import org.bigbluebutton.webconference.voice.events.VideoPausedEvent;
 import org.bigbluebutton.webconference.voice.events.VideoResumedEvent;
 import org.bigbluebutton.webconference.voice.events.VoiceConferenceEvent;
@@ -88,6 +89,10 @@ public class FreeswitchConferenceEventListener implements ConferenceEventListene
 				VideoResumedEvent evt = (VideoResumedEvent) event;
 				System.out.println("************** FreeswitchConferenceEventListener VideoResumedEvent ");
 				vcs.videoResumed(evt.getRoom());
+			} else if (event instanceof VideoFloorChangedEvent) {
+				VideoFloorChangedEvent evt = (VideoFloorChangedEvent) event;
+				System.out.println("************** FreeswitchConferenceEventListener VideoFloorHolderChangedEvent");
+				vcs.activeTalkerChanged(evt.getRoom(), evt.getFloorHolderVoiceUserId());
 			}
 			}
 		};

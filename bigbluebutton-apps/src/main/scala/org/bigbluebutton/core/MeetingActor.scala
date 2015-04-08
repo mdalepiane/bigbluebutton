@@ -10,6 +10,7 @@ import org.bigbluebutton.core.api._
 import org.bigbluebutton.core.apps.presentation.PresentationApp
 import org.bigbluebutton.core.apps.layout.LayoutApp
 import org.bigbluebutton.core.apps.chat.ChatApp
+import org.bigbluebutton.core.apps.voice.VoiceApp
 import org.bigbluebutton.core.apps.whiteboard.WhiteboardApp
 import scala.actors.TIMEOUT
 import java.util.concurrent.TimeUnit
@@ -23,13 +24,16 @@ class MeetingActor(val meetingID: String, val externalMeetingID: String, val mee
                    val outGW: MessageOutGateway) 
                    extends Actor with UsersApp with PresentationApp
                    with PollApp with LayoutApp with ChatApp
-                   with WhiteboardApp with LogHelper {  
+                   with WhiteboardApp with LogHelper with VoiceApp {
 
   var permissionsInited = false
   var permissions = new Permissions()
   var recording = false;
   var muted = false;
   var meetingEnded = false
+
+  var isSipVideoPresent = false
+  var activeTalker = ""
 
   def getDuration():Long = {
     duration
@@ -73,6 +77,7 @@ class MeetingActor(val meetingID: String, val externalMeetingID: String, val mee
 	    case msg: VoiceUserTalking                       => handleVoiceUserTalking(msg)
 	    case msg: SipVideoPaused                         => handleSipVideoPaused(msg)
 	    case msg: SipVideoResumed                        => handleSipVideoResumed(msg)
+	    case msg: ActiveTalkerChanged                    => handleActiveTalkerChanged(msg)
     	case msg: UserJoining                            => handleUserJoin(msg)
 	    case msg: UserLeaving                            => handleUserLeft(msg)
 	    case msg: AssignPresenter                        => handleAssignPresenter(msg)

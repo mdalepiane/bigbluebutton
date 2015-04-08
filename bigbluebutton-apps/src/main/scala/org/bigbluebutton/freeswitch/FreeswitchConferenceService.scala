@@ -126,4 +126,9 @@ class FreeswitchConferenceService(fsproxy: FreeswitchManagerProxy,
     val vr = new FsVideoResumed(conference)
     fsActor ! vr
   }
+
+  def activeTalkerChanged(conference: String, userId: String) {
+    val vr = new FsActiveTalkerChanged(conference, userId)
+    fsActor ! vr
+  }
 }

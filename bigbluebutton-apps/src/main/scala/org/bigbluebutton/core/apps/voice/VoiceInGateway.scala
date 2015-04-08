@@ -70,4 +70,8 @@ class VoiceInGateway(bbbGW: BigBlueButtonGateway) {
 	def sipVideoResumed(meetingId: String) {
 	  bbbGW.accept(new SipVideoResumed(meetingId))
 	}
+
+	def activeTalkerChanged(meetingId: String, userId: String) {
+	  bbbGW.accept(new ActiveTalkerChanged(meetingId, userId))
+	}
 }

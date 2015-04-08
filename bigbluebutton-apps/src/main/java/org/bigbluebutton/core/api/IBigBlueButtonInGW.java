@@ -64,6 +64,7 @@ public interface IBigBlueButtonInGW {
 			            String timestamp, Boolean recording);
 	void sipVideoPaused(String meetingId);
 	void sipVideoResumed(String meetingId);
+	void activeTalkerChanged(String meetingId, String userId);
 	
 	// Presentation
 	void clear(String meetingID);

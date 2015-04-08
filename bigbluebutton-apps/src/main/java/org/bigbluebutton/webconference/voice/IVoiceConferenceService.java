@@ -12,4 +12,5 @@ public interface IVoiceConferenceService {
 		  String timestamp, Boolean recording);
   void videoPaused(String meetingId);
   void videoResumed(String meetingId);
+  void activeTalkerChanged(String meetingId, String floorHolderVoiceUserId);
 }

@@ -322,6 +322,14 @@ case class IsMeetingMutedReply(
     version:String = Versions.V_0_0_1
 ) extends IOutMessage
 
+case class SipVideoUpdated (
+    meetingID: String,
+    recorded: Boolean,
+    sipVideoPresent: Boolean,
+    activeTalker: String,
+    version:String = Versions.V_0_0_1
+) extends IOutMessage
+
 case class StartRecording(
     meetingID: String, 
     recorded: Boolean, 

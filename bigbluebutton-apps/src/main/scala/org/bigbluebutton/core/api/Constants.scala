@@ -54,6 +54,8 @@ object Constants {
   val CALLER_ID_NUM                   = "caller_id_num"
   val CALLER_ID_NAME                  = "caller_id_name"
   val TALKING                         = "talking"
+  val SIP_VIDEO_PRESENT               = "sip_video_present"
+  val ACTIVE_TALKER                   = "active_talker"
   val USER                            = "user"
   val MUTED                           = "muted"
   val VOICE_USER                      = "voice_user"

@@ -18,6 +18,7 @@ case class FsRecording(conference: String, recordingFile: String,
                             timestamp: String, recording: Boolean)
 case class FsVideoPaused(conference: String)
 case class FsVideoResumed(conference: String)
+case class FsActiveTalkerChanged(conference: String, userId: String)
 
 class FreeswitchConferenceActor(fsproxy: FreeswitchManagerProxy, bbbInGW: IBigBlueButtonInGW) extends Actor with LogHelper {
  
@@ -46,6 +47,7 @@ class FreeswitchConferenceActor(fsproxy: FreeswitchManagerProxy, bbbInGW: IBigBl
 	    case msg: EjectAllVoiceUsers                 => handleEjectAllVoiceUsers(msg)
 	    case msg: FsVideoPaused                      => handleFsVideoPaused(msg)
 	    case msg: FsVideoResumed                     => handleFsVideoResumed(msg)
+	    case msg: FsActiveTalkerChanged              => handleFsActiveTalkerChanged(msg)
 	    case _ => // do nothing
 	  }
 	}
@@ -264,6 +266,15 @@ class FreeswitchConferenceActor(fsproxy: FreeswitchManagerProxy, bbbInGW: IBigBl
 
     fsconf foreach (fc => {
       bbbInGW.sipVideoResumed(fc.meetingId)
+    })
+  }
+
+  private def handleFsActiveTalkerChanged(msg: FsActiveTalkerChanged) {
+    val fsconf = confs.values find (c => c.conferenceNum == msg.conference)
+
+    fsconf foreach (fc => {
+      val user = fc.getVoiceUser(msg.userId)
+      user foreach (u => bbbInGW.activeTalkerChanged(fc.meetingId, u.userID))
     })
   }
 }

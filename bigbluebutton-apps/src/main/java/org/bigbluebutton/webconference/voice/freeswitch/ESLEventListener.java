@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bigbluebutton.webconference.voice.events.ConferenceEventListener;
+import org.bigbluebutton.webconference.voice.events.VideoFloorChangedEvent;
 import org.bigbluebutton.webconference.voice.events.VideoPausedEvent;
 import org.bigbluebutton.webconference.voice.events.VideoResumedEvent;
 import org.bigbluebutton.webconference.voice.events.VoiceUserJoinedEvent;
@@ -28,6 +29,7 @@ public class ESLEventListener implements IEslEventListener {
     private static final String STOP_RECORDING_EVENT = "stop-recording";
     private static final String VIDEO_PAUSED_EVENT = "video-paused";
     private static final String VIDEO_RESUMED_EVENT = "video-resumed";
+    private static final String VIDEO_FLOOR_CHANGE_EVENT = "video-floor-change";
     
     private ConferenceEventListener conferenceEventListener;
     
@@ -194,16 +196,16 @@ public class ESLEventListener implements IEslEventListener {
                     VideoResumedEvent vResumed = new VideoResumedEvent(confName);
                     conferenceEventListener.handleConferenceEvent(vResumed);
                     break;
+                case VIDEO_FLOOR_CHANGE_EVENT:
+                    Integer holderMemberId = getNewFloorHolderMemberIdFromEvent(event);
+                    VideoFloorChangedEvent vFloor= new VideoFloorChangedEvent(confName, holderMemberId.toString());
+                    conferenceEventListener.handleConferenceEvent(vFloor);
+                    break;
 
                 default:
                     log.debug("Unknown conference Action [{}]", action);
             }
         }
-//        if (event.getEventName().equals(FreeswitchHeartbeatMonitor.EVENT_HEARTBEAT)) {
-////           setChanged();
-//           notifyObservers(event);
-//           return; 
-//        }
 	}
 
     private Integer getMemberIdFromEvent(EslEvent e) {        
@@ -232,5 +234,13 @@ public class ESLEventListener implements IEslEventListener {
 	
     public void setConferenceEventListener(ConferenceEventListener listener) {
         this.conferenceEventListener = listener;
+    }
+
+    private Integer getNewFloorHolderMemberIdFromEvent(EslEvent e) {
+        try{
+            return new Integer(e.getEventHeaders().get("New-ID"));
+        }catch (NumberFormatException excp){
+            return null;
+        }
     }
 }
