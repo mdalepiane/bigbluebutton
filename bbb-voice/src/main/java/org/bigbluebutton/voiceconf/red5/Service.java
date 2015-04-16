@@ -185,6 +185,10 @@ public class Service {
         return true;
 	}
 
+	public void updateVideoStatus(String voiceBridge, String floorHolder, Boolean videoPresent) {
+		log.debug("updateVideoStatus [{},{},{}]", voiceBridge, floorHolder, videoPresent);
+	}
+
 	private String getClientId() {
 		IConnection conn = Red5.getConnectionLocal();
 		return conn.getClient().getId();

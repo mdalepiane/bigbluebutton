@@ -12,6 +12,7 @@ object VoiceMessageToJsonConverter {
   def sipVideoUpdatedToJson(msg: SipVideoUpdated):String = {
     val payload = new java.util.HashMap[String, Any]()
     payload.put(Constants.MEETING_ID, msg.meetingID)
+    payload.put(Constants.VOICE_CONF, msg.voiceBridge)
     payload.put(Constants.SIP_VIDEO_PRESENT, msg.sipVideoPresent)
     payload.put(Constants.ACTIVE_TALKER, msg.activeTalker)
 

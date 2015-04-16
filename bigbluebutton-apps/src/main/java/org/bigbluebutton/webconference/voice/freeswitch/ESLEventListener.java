@@ -197,8 +197,8 @@ public class ESLEventListener implements IEslEventListener {
                     conferenceEventListener.handleConferenceEvent(vResumed);
                     break;
                 case VIDEO_FLOOR_CHANGE_EVENT:
-                    Integer holderMemberId = getNewFloorHolderMemberIdFromEvent(event);
-                    VideoFloorChangedEvent vFloor= new VideoFloorChangedEvent(confName, holderMemberId.toString());
+                    String holderMemberId = getNewFloorHolderMemberIdFromEvent(event);
+                    VideoFloorChangedEvent vFloor= new VideoFloorChangedEvent(confName, holderMemberId);
                     conferenceEventListener.handleConferenceEvent(vFloor);
                     break;
 
@@ -236,11 +236,11 @@ public class ESLEventListener implements IEslEventListener {
         this.conferenceEventListener = listener;
     }
 
-    private Integer getNewFloorHolderMemberIdFromEvent(EslEvent e) {
-        try{
-            return new Integer(e.getEventHeaders().get("New-ID"));
-        }catch (NumberFormatException excp){
-            return null;
+    private String getNewFloorHolderMemberIdFromEvent(EslEvent e) {
+        String newHolder = e.getEventHeaders().get("New-ID");
+        if(newHolder == null || newHolder.equalsIgnoreCase("none")) {
+            newHolder = "";
         }
+        return newHolder;
     }
 }

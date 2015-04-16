@@ -16,6 +16,7 @@ class VoiceEventRedisPublisher(service: MessageSender) extends OutMessageListene
 
   private def handleSipVideoUpdated(msg: SipVideoUpdated) {
     val json = VoiceMessageToJsonConverter.sipVideoUpdatedToJson(msg)
-    service.send(MessagingConstants.FROM_MEETING_CHANNEL, json)  
+    service.send(MessagingConstants.TO_BBB_VOICE_CHANNEL, json)
+    service.send(MessagingConstants.FROM_MEETING_CHANNEL, json)
   }
 }

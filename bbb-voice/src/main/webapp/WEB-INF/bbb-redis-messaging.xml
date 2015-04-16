@@ -35,7 +35,7 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
                     init-method="start" destroy-method="stop">
     	<property name="redisPool"> <ref bean="redisPool"/></property>
   	</bean>
-<!--
+
     <bean id="redisMessageReceiver" class="org.bigbluebutton.voiceconf.messaging.MessageReceiver" 
                     init-method="start" destroy-method="stop">
     	<property name="redisPool"> <ref bean="redisPool"/></property>
@@ -46,13 +46,17 @@ with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
                     init-method="start" destroy-method="stop">
       <property name="messageDistributor"><ref bean="redisMessageDistributor" /></property>
     </bean>
-  	
+
   	<bean id="redisMessageDistributor" class="org.bigbluebutton.voiceconf.messaging.MessageDistributor">
   	     <property name="messageHandler"> <ref local="redisMessageHandler"/> </property>
   	     <property name="messageListeners">
             <set>
+                <ref bean="voiceMessageHandler" />
             </set>
         </property> 
   	</bean>	  	
---> 
+
+    <bean id="voiceMessageHandler" class="org.bigbluebutton.voiceconf.messaging.VoiceMessageHandler">
+        <property name="voiceService"> <ref bean="voiceconf.service"/> </property>
+    </bean>
 </beans>

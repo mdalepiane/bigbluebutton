@@ -31,6 +31,7 @@ public class MessagingConstants {
   public static final String FROM_WHITEBOARD_CHANNEL = FROM_BBB_APPS_CHANNEL + ":whiteboard";
   
 	public static final String TO_BBB_APPS_CHANNEL = "bigbluebutton:to-bbb-apps";	
+	public static final String TO_BBB_VOICE_CHANNEL = "bigbluebutton:to-bbb-voice";
 	public static final String TO_BBB_APPS_PATTERN = TO_BBB_APPS_CHANNEL + ":*";
 	public static final String TO_MEETING_CHANNEL = TO_BBB_APPS_CHANNEL + ":meeting";	
 	public static final String TO_SYSTEM_CHANNEL = TO_BBB_APPS_CHANNEL + ":system";

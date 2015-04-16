@@ -325,6 +325,7 @@ case class IsMeetingMutedReply(
 case class SipVideoUpdated (
     meetingID: String,
     recorded: Boolean,
+    voiceBridge: String,
     sipVideoPresent: Boolean,
     activeTalker: String,
     version:String = Versions.V_0_0_1

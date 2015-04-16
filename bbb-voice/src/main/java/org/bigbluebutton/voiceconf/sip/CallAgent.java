@@ -373,6 +373,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
                     videoReceiver.setInput(sdpFile);
                     videoReceiver.setOutput(output);
                     videoReceiver.setFormat("flv");
+                    videoReceiver.setLevel("warning");
 
                     log.debug("Starting process now...");
 

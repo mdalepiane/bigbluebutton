@@ -85,4 +85,7 @@ public class Constants {
   public static final String X_PERCENT                       = "x_percent";
   public static final String Y_PERCENT                       = "y_percent";
   public static final String KEEP_ALIVE_ID                   = "keep_alive_id"; 
+  public static final String SIP_VIDEO_UPDATE                = "sip_video_update";
+  public static final String ACTIVE_TALKER                   = "active_talker";
+  public static final String SIP_VIDEO_PRESENT               = "sip_video_present";
 }
