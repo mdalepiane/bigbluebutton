@@ -39,6 +39,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -60,7 +61,6 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
     private CallStream videoCallStream;    
     private String localSession = null;
     private Codec sipAudioCodec = null;
-    private Codec sipVideoCodec = null;    
     private CallStreamFactory callStreamFactory;
     private ClientConnectionManager clientConnManager; 
     private final String clientId;
@@ -326,45 +326,77 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 
     }
 
+    private boolean writeSdpToFile(String sdp, String path) {
+        try {
+            FileWriter fw;
+            fw = new FileWriter(path);
+            fw.write(sdp);
+            fw.flush();
+            log.debug("SDP written to {}", path);
+            fw.close();
+        } catch (IOException e) {
+            log.warn("Failed to write SDP to {}: {}", path, e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     private boolean createVideoStream(String remoteMediaAddress, int localVideoPort, int remoteVideoPort) {
 
        SipConnectInfo connInfo = new SipConnectInfo(localVideoSocket, remoteMediaAddress, remoteVideoPort);
-       try {
-            localVideoSocket.connect(InetAddress.getByName(remoteMediaAddress), remoteVideoPort);        
-            
-            if (userProfile.video && localVideoPort != 0 && remoteVideoPort != 0) {
-                if ((videoCallStream == null) && (sipVideoCodec != null)) {                  
-                    try {
-                        log.debug("Creating VIDEO stream: [localVideoPort=" + localVideoPort + ",remoteVideoPort=" + remoteVideoPort + "]");
-                        videoCallStream = callStreamFactory.createCallStream(sipVideoCodec, connInfo, CallStream.MEDIA_TYPE_VIDEO);                                                
-                        videoCallStream.addCallStreamObserver(this);
-                        videoCallStream.start();
-                        String streamName = videoCallStream.getBbbToFreeswitchStreamName();
-                        if(!streamTypeManager.containsKey(streamName))
-                        {
-                            streamTypeManager.put(streamName, CallStream.MEDIA_TYPE_VIDEO);
-                            log.debug("[CallAgent] streamTypeManager adding video stream {} for {}", streamName, clientId);
-                        }
 
-                        if (isGlobalStream())
-                        {
-                            GlobalCall.addGlobalVideoStream(_destination, videoCallStream, connInfo);
-                        }
+       SessionDescriptor local = new SessionDescriptor(localSession);
+       String videoSdp = local.getVideoSdp();
 
-                        return true;        
-                            
-                    } catch (Exception e) {
-                        log.error("Failed to create VIDEO Call Stream.");
-                        System.out.println(StackTraceUtil.getStackTrace(e));
-                    }                
+       if (videoSdp != null) {
+           String streamName = "screen" + _destination;
+           String ip = "10.0.3.97";//Red5.getConnectionLocal().getHost();
+           String sdpFile = "/tmp/" + streamName + ".sdp";
+           String output = "rtmp://" + ip + "/video/" + streamName;
+
+           log.debug("####################################################");
+           log.debug("StreamName: " + streamName);
+           log.debug("SDP file: " + sdpFile);
+           log.debug("Output: " + output);
+           log.debug("localConn:" + Red5.getConnectionLocal());
+           log.debug("####################################################");
+
+            try {
+                log.debug("Creating VIDEO stream: [{}]", streamName);
+
+                localVideoSocket.close();
+
+                if(writeSdpToFile(videoSdp, sdpFile)) {
+                    log.debug("/usr/local/bin/ffmpeg -i {} -f flv {}", sdpFile, output);
+
+                    FFmpegCommand videoReceiver = new FFmpegCommand();
+                    videoReceiver.setInput(sdpFile);
+                    videoReceiver.setOutput(output);
+                    videoReceiver.setFormat("flv");
+
+                    log.debug("Starting process now...");
+
+                    String command[] = videoReceiver.getFFmpegCommand(true);
+                    ProcessMonitor ffmpeg = new ProcessMonitor(command);
+//                    ffmpeg.run();
+
+                    if(!streamTypeManager.containsKey(streamName)) {
+                        streamTypeManager.put(streamName, CallStream.MEDIA_TYPE_VIDEO);
+                        log.debug("[CallAgent] streamTypeManager adding video stream {} for {}", streamName, clientId);
+                    }
+
+                    if (isGlobalStream()) {
+                        GlobalCall.addGlobalVideoStream(_destination, streamName, connInfo);
+                    }
                 }
+
+                return true;
+            } catch (Exception e) {
+                log.error("Failed to connect for VIDEO Stream.");
+                log.error(e.getMessage());
+                log.error(StackTraceUtil.getStackTrace(e));
             }
-
-        } catch (UnknownHostException e1) {
-            log.error("Failed to connect for VIDEO Stream.");
-            log.error(StackTraceUtil.getStackTrace(e1));
         }
-
         return false;
     }
 
@@ -483,7 +515,6 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 		    
         GlobalCall.addUser(clientId, callerIdName, _destination);
         sipAudioCodec = GlobalCall.getRoomAudioCodec(voiceConf);
-        sipVideoCodec = GlobalCall.getRoomVideoCodec(voiceConf);
         callState = CallState.UA_ONCALL;
         notifyListenersOnCallConnected("", globalAudioStreamName);
         log.info("User is has connected to global audio, user=[" + callerIdName + "] voiceConf = [" + voiceConf + "]");
@@ -523,10 +554,6 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
     	sipAudioCodec = SdpUtils.getNegotiatedAudioCodec(newSdp);
     }
 
-    private void createVideoCodec(SessionDescriptor newSdp) {
-        sipVideoCodec = SdpUtils.getNegotiatedVideoCodec(newSdp);
-    }
-        
     private void setupSdpAndCodec(String sdp) {
     	SessionDescriptor remoteSdp = new SessionDescriptor(sdp);
         SessionDescriptor localSdp = new SessionDescriptor(localSession);
@@ -537,7 +564,6 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
         // First we need to make payloads negotiation so the related attributes can be then matched.
         SessionDescriptor newSdp = SdpUtils.makeMediaPayloadsNegotiation(localSdp, remoteSdp);        
         createAudioCodec(newSdp);
-        createVideoCodec(newSdp);
         
         // Now we complete the SDP negotiation informing the selected 
         // codec, so it can be internally updated during the process.
@@ -743,7 +769,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 
     public void onCallStreamStarted() {
         log.info("Call stream has been started");
-        String videoStream = videoCallStream.getFreeswitchToBbbStreamName();
+        String videoStream = "screen" + _destination;//videoCallStream.getFreeswitchToBbbStreamName();
         notifyListenersOfOnCallStarted(videoStream);
     }
     

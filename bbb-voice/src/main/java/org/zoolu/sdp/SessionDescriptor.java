@@ -355,8 +355,26 @@ public class SessionDescriptor
          if (a.getAttributeName().equals(attribute_name)) _v.addElement(a);
       }
       return _v;
-   } 
+   }
 
+   /** Get a String representation of minimal video SDP.
+    * This SDP contains session description and video description only.*/
+   public String getVideoSdp() {
+      MediaDescriptor video = getMediaDescriptor("video");
+      if(video != null) {
+          StringBuffer sb = new StringBuffer();
+          if (v!=null) sb.append(v.toString());
+          if (o!=null) sb.append(o.toString());
+          if (s!=null) sb.append(s.toString());
+          if (c!=null) sb.append(c.toString());
+          if (t!=null) sb.append(t.toString());
+
+          sb.append(video.toString());
+
+          return sb.toString();
+      }
+      return null;
+   }
 
    /** Gets a String rapresentation */
     @Override

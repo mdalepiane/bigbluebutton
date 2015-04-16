@@ -99,6 +99,7 @@ package org.bigbluebutton.modules.videoconf.maps
     public function start(uri:String):void {
       trace("VideoEventMapDelegate:: [" + me + "] Video Module Started.");
       this.uri = uri;
+	  this.uri = "rtmp://10.0.3.97/video";
     }
         
     public function viewCamera(userID:String, stream:String, name:String, mock:Boolean = false):void {
@@ -343,7 +344,7 @@ package org.bigbluebutton.modules.videoconf.maps
         fsWindow.videoOptions = options;       
         fsWindow.resolutions = "640x480".split(",");
 
-        fsWindow.startVideo(connection, streamName);
+        fsWindow.startVideo(proxy.connection, streamName);
         webcamWindows.addWindow(fsWindow);
         openWindow(fsWindow);
         dockWindow(fsWindow);
