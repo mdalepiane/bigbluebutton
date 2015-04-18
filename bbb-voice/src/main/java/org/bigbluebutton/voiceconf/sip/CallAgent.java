@@ -30,6 +30,7 @@ import org.bigbluebutton.voiceconf.red5.media.CallStream;
 import org.bigbluebutton.voiceconf.red5.media.CallStreamObserver;
 import org.bigbluebutton.voiceconf.red5.media.StreamException;
 import org.bigbluebutton.voiceconf.util.StackTraceUtil;
+import org.bigbluebutton.voiceconf.video.VideoTranscoder;
 import org.red5.app.sip.codecs.Codec;
 import org.red5.app.sip.codecs.CodecUtils;
 import org.red5.app.sip.codecs.H264Codec;
@@ -58,7 +59,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
     private final String clientRtpIp;
     private ExtendedCall call;
     private CallStream audioCallStream; 
-    private CallStream videoCallStream;    
+    private ProcessMonitor videoTranscoder;
     private String localSession = null;
     private Codec sipAudioCodec = null;
     private CallStreamFactory callStreamFactory;
@@ -260,17 +261,6 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
             audioStreamCreatedSuccesfully = createAudioStream(remoteMediaAddress,localAudioPort,remoteAudioPort); 
                     	
         }else log.debug("AUDIO application is already running.");
-        
-        if (videoCallStream == null) {        
-            int remoteVideoPort = SessionDescriptorUtil.getRemoteMediaPort(remoteSdp, SessionDescriptorUtil.SDP_MEDIA_VIDEO);
-            int localVideoPort = SessionDescriptorUtil.getLocalMediaPort(localSdp, SessionDescriptorUtil.SDP_MEDIA_VIDEO);
-            if(isGlobalStream()) {
-                // Only global stream create the video stream here to receive video from FreeSWITCH
-                createVideoStream(remoteMediaAddress,localVideoPort,remoteVideoPort);
-                log.debug("VIDEO stream created");
-            }
-
-        }else log.debug("VIDEO application is already running.");
 
         if(audioStreamCreatedSuccesfully && !isGlobalStream()) {
 
@@ -341,10 +331,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
         return true;
     }
 
-    private boolean createVideoStream(String remoteMediaAddress, int localVideoPort, int remoteVideoPort) {
-
-       SipConnectInfo connInfo = new SipConnectInfo(localVideoSocket, remoteMediaAddress, remoteVideoPort);
-
+    private boolean createVideoStream() {
        SessionDescriptor local = new SessionDescriptor(localSession);
        String videoSdp = local.getVideoSdp();
 
@@ -373,13 +360,16 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
                     videoReceiver.setInput(sdpFile);
                     videoReceiver.setOutput(output);
                     videoReceiver.setFormat("flv");
-                    videoReceiver.setLevel("warning");
+                    videoReceiver.setLoglevel("warning");
 
                     log.debug("Starting process now...");
 
                     String command[] = videoReceiver.getFFmpegCommand(true);
                     ProcessMonitor ffmpeg = new ProcessMonitor(command);
-//                    ffmpeg.run();
+                    videoTranscoder = ffmpeg;
+                    ffmpeg.run();
+
+                    VideoTranscoder vTranscoder = new VideoTranscoder(streamName, ffmpeg, true);
 
                     if(!streamTypeManager.containsKey(streamName)) {
                         streamTypeManager.put(streamName, CallStream.MEDIA_TYPE_VIDEO);
@@ -387,7 +377,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
                     }
 
                     if (isGlobalStream()) {
-                        GlobalCall.addGlobalVideoStream(_destination, streamName, connInfo);
+                        GlobalCall.addGlobalVideoStream(_destination, vTranscoder);
                     }
                 }
 
@@ -485,9 +475,9 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
         }
 
         log.debug("Shutting down the VIDEO stream...");         
-        if (videoCallStream != null) {
-            videoCallStream.stopFreeswitchToBbbStream();
-            videoCallStream = null;
+        if (videoTranscoder != null) {
+            videoTranscoder.destroy();
+            videoTranscoder = null;
         } else {
             log.debug("Can't shutdown VIDEO stream: already NULL");
         }
@@ -504,14 +494,12 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
         _destination = voiceConf;
 
         String globalAudioStreamName = GlobalCall.getGlobalAudioStream(voiceConf);
-        String globalVideoStreamName = GlobalCall.getGlobalVideoStream(voiceConf);
-        while (globalAudioStreamName.equals(null) || globalVideoStreamName.equals(null)) {
+        while (globalAudioStreamName == null) {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
             }
             globalAudioStreamName = GlobalCall.getGlobalAudioStream(voiceConf);
-            globalVideoStreamName = GlobalCall.getGlobalVideoStream(voiceConf);
         }
 		    
         GlobalCall.addUser(clientId, callerIdName, _destination);
@@ -815,5 +803,9 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 
         sipProvider.sendMessage(msg);
                
-    }   
+    }
+
+    public boolean startFreeswitchToBbbVideoStream() {
+        return createVideoStream();
+    }
 }

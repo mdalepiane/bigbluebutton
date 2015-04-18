@@ -21,22 +21,17 @@ package org.bigbluebutton.voiceconf.red5;
 import java.text.MessageFormat;
 
 import org.slf4j.Logger;
-import org.bigbluebutton.voiceconf.sip.CallManager;
 import org.bigbluebutton.voiceconf.sip.FFmpegCommand;
 import org.bigbluebutton.voiceconf.sip.PeerNotFoundException;
 import org.bigbluebutton.voiceconf.sip.ProcessMonitor;
 import org.bigbluebutton.voiceconf.sip.SipPeerManager;
 import org.bigbluebutton.voiceconf.sip.GlobalCall;
+import org.bigbluebutton.voiceconf.video.VideoTranscoder;
 import org.red5.app.sip.codecs.Codec;
 import org.red5.app.sip.codecs.H264Codec;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
-import org.red5.server.api.stream.IBroadcastStream;
-import org.bigbluebutton.voiceconf.sip.GlobalCall;
-import org.bigbluebutton.voiceconf.sip.ProcessMonitor;
-import org.red5.app.sip.codecs.H264Codec;
-import org.red5.app.sip.codecs.Codec;
 
 public class Service {
     private static Logger log = Red5LoggerFactory.getLogger(Service.class, "sip");
@@ -48,17 +43,6 @@ public class Service {
     	
 	public Boolean call(String peerId, String callerName, String destination, Boolean listenOnly) {
 		if (listenOnly) {
-			if (GlobalCall.reservePlaceToCreateGlobal(destination)) {
-			    log.warn("Global call for {} not found, creating one", destination);
-				String extension = callExtensionPattern.format(new String[] { destination });
-				try {
-					sipPeerManager.call(peerId, destination, "GLOBAL_AUDIO_" + destination, extension);
-					Red5.getConnectionLocal().setAttribute("VOICE_CONF_PEER", peerId);
-				} catch (PeerNotFoundException e) {
-					log.error("PeerNotFound {}", peerId);
-					return false;
-				}
-			}
 			sipPeerManager.connectToGlobalStream(peerId, getClientId(), callerName, destination);
 			Red5.getConnectionLocal().setAttribute("VOICE_CONF_PEER", peerId);
 			return true;
@@ -154,9 +138,7 @@ public class Service {
         //called by the client
         String[] parameters = portParameters.split(",");
         log.debug("Accepted a webRTC Call: saving it's parameters"+portParameters);
-        String clientId = Red5.getConnectionLocal().getClient().getId();
         String userid = getUserId();
-        String username = getUsername();
         String ip = Red5.getConnectionLocal().getHost();
 
         String remoteVideoPort = parameters[2].split("=")[1];
@@ -187,6 +169,26 @@ public class Service {
 
 	public void updateVideoStatus(String voiceBridge, String floorHolder, Boolean videoPresent) {
 		log.debug("updateVideoStatus [{},{},{}]", voiceBridge, floorHolder, videoPresent);
+		String peerId = "default";
+		String globalCall = "GLOBAL_AUDIO_" + voiceBridge;
+
+		if(!GlobalCall.existGlobalVideoStream(voiceBridge)) {
+
+			if(videoPresent) {
+				boolean success = false;
+				log.info("Create global video stream for {}", voiceBridge);
+				if (sipPeerManager != null) success = sipPeerManager.startFreeswitchToBbbVideoStream(peerId, globalCall);
+				if(success) {
+					log.info("Global video stream creation succeded for [{}], [{}]", voiceBridge, GlobalCall.getGlobalVideoStream(voiceBridge));
+				} else {
+					log.warn("Global video stream creation failed for [{}]", voiceBridge);
+				}
+			}
+		}
+		VideoTranscoder transcoder = GlobalCall.getGlobalVideoStream(voiceBridge);
+		if(transcoder != null) {
+			transcoder.setVideoPresent(videoPresent);
+		}
 	}
 
 	private String getClientId() {

@@ -8,10 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bigbluebutton.voiceconf.red5.ClientConnectionManager;
-import org.bigbluebutton.voiceconf.red5.media.CallStream;
+import org.bigbluebutton.voiceconf.video.VideoTranscoder;
 import org.red5.app.sip.codecs.Codec;
-import org.red5.app.sip.codecs.VP8Codec;
 import org.red5.logging.Red5LoggerFactory;
 import org.slf4j.Logger;
 
@@ -22,7 +20,7 @@ public class GlobalCall {
     private static Map<String,String> roomToAudioStreamMap = new ConcurrentHashMap<String, String>();
     private static Map<String,Codec> roomToAudioCodecMap = new ConcurrentHashMap<String, Codec>();
     private static Map<String,KeepGlobalAudioAlive> globalAudioKeepAliverMap = new ConcurrentHashMap<String, KeepGlobalAudioAlive>();
-    private static Map<String,String> roomToVideoStreamMap = new ConcurrentHashMap<String, String>();
+    private static Map<String,VideoTranscoder> roomToVideoStreamMap = new ConcurrentHashMap<String, VideoTranscoder>();
 
     private static Map<String, VoiceConfToListenOnlyUsersMap> voiceConfToListenOnlyUsersMap = new ConcurrentHashMap<String, VoiceConfToListenOnlyUsersMap>();
     
@@ -51,12 +49,21 @@ public class GlobalCall {
         return roomToAudioStreamMap.get(voiceConf);
     }
 
-    public static synchronized void addGlobalVideoStream(String voiceConf, String globalStream, SipConnectInfo connInfo) {
-        log.debug("Adding a global video stream to room {} stream {}", voiceConf, globalStream);
+    public static synchronized void addGlobalVideoStream(String voiceConf, VideoTranscoder globalStream) {
+        log.debug("Adding a global video stream to room {} stream {}", voiceConf, globalStream.getStreamName());
         roomToVideoStreamMap.put(voiceConf, globalStream);
     }
 
-    public static synchronized String getGlobalVideoStream(String voiceConf) {
+    public static synchronized boolean existGlobalVideoStream(String voiceConf) {
+        return roomToVideoStreamMap.get(voiceConf) != null;
+    }
+
+    public static synchronized void removeGlobalVideoStrem(String voiceConf) {
+        log.debug("Removing global video stream from room {}", voiceConf);
+        roomToVideoStreamMap.remove(voiceConf);
+    }
+
+    public static synchronized VideoTranscoder getGlobalVideoStream(String voiceConf) {
         if(roomToVideoStreamMap.containsKey(voiceConf)) {
 //            return roomToVideoStreamMap.get(voiceConf).getFreeswitchToBbbStreamName();
             return roomToVideoStreamMap.get(voiceConf);
@@ -120,10 +127,9 @@ public class GlobalCall {
     }
 
     public static boolean isVideoPaused(String roomName) {
-/*        if(roomToVideoStreamMap.containsKey(roomName)){
-            return roomToVideoStreamMap.get(roomName).isVideoPaused();
+        if(roomToVideoStreamMap.containsKey(roomName)){
+            return !roomToVideoStreamMap.get(roomName).isVideoPresent();
         }
-        return true;*/
-        return false;
+        return true;
     }
 }

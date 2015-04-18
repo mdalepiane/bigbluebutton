@@ -131,12 +131,12 @@ public class Application extends MultiThreadedApplicationAdapter {
             clientConnManager.createClient(clientId, userId, username, (IServiceCapableConnection) Red5.getConnectionLocal());
 
             String peerId = "default";
-            createGlobalAudio(clientId,peerId,username,voiceBridge);
+            createGlobalAudio(peerId, voiceBridge);
             GlobalCall.addUser(clientId, username, voiceBridge);
             Red5.getConnectionLocal().setAttribute("VOICE_CONF_PEER", peerId);
             if(!GlobalCall.isVideoPaused(voiceBridge)) {
                 // There is already a video stream running, must inform new client
-                String videoStreamName = GlobalCall.getGlobalVideoStream(voiceBridge);
+                String videoStreamName = GlobalCall.getGlobalVideoStream(voiceBridge).getStreamName();
                 log.debug("Informing new user [{}] about current global video stream [{}]", clientId, videoStreamName);
                 clientConnManager.startedVideo(clientId, videoStreamName);
             }
@@ -237,13 +237,13 @@ public class Application extends MultiThreadedApplicationAdapter {
         }
     }
 
-    private boolean createGlobalAudio(String clientId,String peerId, String callerName, String destination){
-        log.debug("peerId = "+peerId+" callerName = "+ callerName + " destination = "+ destination);
+    private boolean createGlobalAudio(String peerId, String destination){
+        log.debug("peerId = "+peerId+" destination = "+ destination);
 
         if (GlobalCall.reservePlaceToCreateGlobal(destination)) {
                 String extension = callExtensionPattern.format(new String[] { destination });
                 try {
-                    sipPeerManager.call(peerId, clientId, "GLOBAL_AUDIO_" + destination, extension);
+                    sipPeerManager.call(peerId, "GLOBAL_AUDIO_" + destination, "GLOBAL_AUDIO_" + destination, extension);
                     Red5.getConnectionLocal().setAttribute("VOICE_CONF_PEER", peerId);
                 } catch (PeerNotFoundException e) {
                     log.error("PeerNotFound {}", peerId);

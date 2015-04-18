@@ -286,6 +286,19 @@ public class SipPeer implements SipRegisterAgentListener {
         if (processMonitor != null) processMonitor.destroy();
     }
 
+    public boolean startFreeswitchToBbbVideoStream(String userId){
+        CallAgent ca = callManager.get(userId);
+        if(ca != null) {
+            return ca.startFreeswitchToBbbVideoStream();
+        } else {
+            log.debug("callAgent for {} is null", userId);
+            for(CallAgent c : callManager.getAll()) {
+                log.debug("{}", c.getUserId());
+            }
+        }
+        return false;
+    }
+    
     public String getStreamType(String clientId, String streamName) {
         CallAgent ca = callManager.get(clientId);
         if (ca != null) {
