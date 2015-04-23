@@ -222,4 +222,12 @@ public final class SipPeerManager {
 	public void setMessagingService(IMessagingService service) {
 		messagingService = service;
 	}
+
+    public void updateVideoStatus(String peerId, String userId, boolean present) {
+        SipPeer sipUser = sipPeers.get(peerId);
+        if(sipUser != null) {
+            sipUser.updateVideoStatus(userId, present);
+        } else
+            log.debug("sipUser for {} is null", peerId);
+    }
 }

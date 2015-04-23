@@ -354,4 +354,16 @@ public class SipPeer implements SipRegisterAgentListener {
 	public void setClientConnectionManager(ClientConnectionManager ccm) {
 		clientConnManager = ccm;
 	}
+
+    public void updateVideoStatus(String userId, boolean present) {
+        CallAgent ca = callManager.get(userId);
+        if(ca != null) {
+            ca.updateVideoStatus(present);
+        } else {
+            log.debug("callAgent for {} is null", userId);
+            for(CallAgent c : callManager.getAll()) {
+                log.debug("{}", c.getUserId());
+            }
+        }
+    }
 }

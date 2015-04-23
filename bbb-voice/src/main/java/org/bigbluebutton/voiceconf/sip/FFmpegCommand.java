@@ -120,4 +120,8 @@ public class FFmpegCommand {
     public void setMaxKeyFrameInterval(String arg) {
         this.x264Params.put("keyint", arg);
     }
+
+    public void addCustomParameter(String name, String value) {
+        this.args.put(name, value);
+    }
 }

@@ -361,26 +361,20 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
                     videoReceiver.setOutput(output);
                     videoReceiver.setFormat("flv");
                     videoReceiver.setLoglevel("warning");
+                    videoReceiver.addCustomParameter("-q:v", "1");
 
                     log.debug("Starting process now...");
 
                     String command[] = videoReceiver.getFFmpegCommand(true);
                     ProcessMonitor ffmpeg = new ProcessMonitor(command);
                     videoTranscoder = ffmpeg;
-                    ffmpeg.run();
+                    ffmpeg.start();
 
                     VideoTranscoder vTranscoder = new VideoTranscoder(streamName, ffmpeg, true);
+                    GlobalCall.addGlobalVideoStream(_destination, vTranscoder);
 
-                    if(!streamTypeManager.containsKey(streamName)) {
-                        streamTypeManager.put(streamName, CallStream.MEDIA_TYPE_VIDEO);
-                        log.debug("[CallAgent] streamTypeManager adding video stream {} for {}", streamName, clientId);
-                    }
-
-                    if (isGlobalStream()) {
-                        GlobalCall.addGlobalVideoStream(_destination, vTranscoder);
-                    }
                 }
-
+                log.debug("Global stream creation succedded for {}", _destination);
                 return true;
             } catch (Exception e) {
                 log.error("Failed to connect for VIDEO Stream.");
@@ -388,6 +382,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
                 log.error(StackTraceUtil.getStackTrace(e));
             }
         }
+       log.debug("Global stream creation falied for {}", _destination);
         return false;
     }
 
@@ -807,5 +802,21 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 
     public boolean startFreeswitchToBbbVideoStream() {
         return createVideoStream();
+    }
+
+    public void updateVideoStatus(boolean present) {
+       for(Iterator<String> i = GlobalCall.getListeners(_destination).iterator(); i.hasNext(); ) {
+            String userId = i.next();
+            log.debug("notifyListenersOfOnCallPaused for {}", userId);
+
+            if(present) {
+               String streamName = GlobalCall.getGlobalVideoStream(_destination).getStreamName();
+               clientConnManager.startedVideo(userId, streamName);
+
+            }
+            else {
+                clientConnManager.pausedVideo(userId);
+            }
+       }
     }
 }

@@ -185,9 +185,14 @@ public class Service {
 				}
 			}
 		}
+		if (sipPeerManager != null) sipPeerManager.updateVideoStatus(peerId, globalCall, videoPresent);
+		GlobalCall.getGlobalVideoStream(voiceBridge);
 		VideoTranscoder transcoder = GlobalCall.getGlobalVideoStream(voiceBridge);
 		if(transcoder != null) {
+			log.debug("Video {} present", GlobalCall.getGlobalVideoStream(voiceBridge).getStreamName());
 			transcoder.setVideoPresent(videoPresent);
+		} else {
+			log.debug("Video for {} not found", voiceBridge);
 		}
 	}
 
