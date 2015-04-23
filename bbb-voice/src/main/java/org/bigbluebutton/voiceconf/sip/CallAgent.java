@@ -60,6 +60,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
     private ExtendedCall call;
     private CallStream audioCallStream; 
     private ProcessMonitor videoTranscoder;
+    private final String serverIp;
     private String localSession = null;
     private Codec sipAudioCodec = null;
     private CallStreamFactory callStreamFactory;
@@ -100,6 +101,7 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
         this.portProvider = portProvider;
         this.clientId = clientId;
         this.messagingService = messagingService;
+        this.serverIp = Red5.getConnectionLocal().getHost();
 
         if(this.streamTypeManager == null)
             this.streamTypeManager = new HashMap<String, String>();
@@ -337,15 +339,13 @@ public class CallAgent extends CallListenerAdapter implements CallStreamObserver
 
        if (videoSdp != null) {
            String streamName = "screen" + _destination;
-           String ip = "10.0.3.97";//Red5.getConnectionLocal().getHost();
            String sdpFile = "/tmp/" + streamName + ".sdp";
-           String output = "rtmp://" + ip + "/video/" + streamName;
+           String output = "rtmp://" + serverIp + "/video/" + streamName;
 
            log.debug("####################################################");
            log.debug("StreamName: " + streamName);
            log.debug("SDP file: " + sdpFile);
            log.debug("Output: " + output);
-           log.debug("localConn:" + Red5.getConnectionLocal());
            log.debug("####################################################");
 
             try {
